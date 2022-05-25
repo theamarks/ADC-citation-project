@@ -1,0 +1,89 @@
+---
+title: "adc_citation_comp"
+author: "Althea Marks"
+date: '2022-05-24'
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(jsonlite)
+library(tidyr)
+library(dplyr)
+library(purrr)
+```
+
+## metrics service production endpoint:
+
+```{r }
+# https://logproc-stage-ucsb-1.test.dataone.org/metrics
+```
+
+
+```{r function_setup}
+
+metrics_citations <- function(from = as.POSIXct("2010-01-01"), to = as.POSIXct(Sys.Date())){
+
+    from <- as.Date(from); to <- as.Date(to)
+    from_q <- paste(stringr::str_pad(lubridate::month(from), 2, side = "left", pad = "0"),
+                    stringr::str_pad(lubridate::day(from), 2, side = "left", pad = "0"),
+                    stringr::str_pad(lubridate::year(from), 2, side = "left", pad = "0"),
+                    sep = "/")
+
+    to_q <- paste(stringr::str_pad(lubridate::month(to), 2, side = "left", pad = "0"),
+                  stringr::str_pad(lubridate::day(to), 2, side = "left", pad = "0"),
+                  stringr::str_pad(lubridate::year(to), 2, side = "left", pad = "0"),
+                  sep = "/")
+
+    d <- jsonlite::fromJSON(paste0('https://logproc-stage-ucsb-1.test.dataone.org/metrics?q={%22metricsPage%22:{%22total%22:0,%22start%22:0,%22count%22:0},%22metrics%22:[%22citations%22],%22filterBy%22:[{%22filterType%22:%22repository%22,%22values%22:[%22urn:node:ARCTIC%22],%22interpretAs%22:%22list%22},{%22filterType%22:%22month%22,%22values%22:[%22', from_q,'%22,%22', to_q, '%22],%22interpretAs%22:%22range%22}],%22groupBy%22:[%22month%22]}'))
+
+    return(d$resultDetails$citations)
+}
+```
+
+```{r current_adc_citations}
+
+output_json <- metrics_citations()
+output_df <- as.data.frame(do.call(rbind, output_json))
+output_clean <- rownames_to_column(output_df, var = "citation_id")
+
+```
+
+Now there are ADC datasets with multiple citation hits that exist as lists within `target_id` column
+
+
+
+retrieve all of the ADC citations you can perform a GET request with the following request body:
+
+```{r}
+{
+  "metricsPage":{
+    "total":0,
+    "start":0,
+    "count":0
+  },
+  "metrics":["citations"],
+  "filterBy":[{
+    "filterType":"repository",
+    "values":["urn:node:ARCTIC"],
+    "interpretAs":"list"
+  },
+  {
+    "filterType":"month",
+    "values":["01/01/2012",
+              "05/24/2022"],
+    "interpretAs":"range"
+  }],
+  "groupBy":["month"]
+}
+```
+
+Example request:
+
+```{r}
+https://logproc-stage-ucsb-1.test.dataone.org/metrics?metricsRequest={%22metricsPage%22:{%22total%22:0,%22start%22:0,%22count%22:0},%22metrics%22:[%22citations%22],%22filterBy%22:[{%22filterType%22:%22repository%22,%22values%22:[%22urn:node:ARCTIC%22],%22interpretAs%22:%22list%22},{%22filterType%22:%22month%22,%22values%22:[%2201/01/2012%22,%2205/24/2022%22],%22interpretAs%22:%22range%22}],%22groupBy%22:[%22month%22]
+}
+```
+
+
