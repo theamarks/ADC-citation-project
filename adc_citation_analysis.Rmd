@@ -13,6 +13,7 @@ library(jsonlite)
 library(tidyr)
 library(dplyr)
 library(dataone)
+library(job)
 ```
 
 ## Run ADC DOIs through `scythe` & compare to known DataONE metrics citations
@@ -125,7 +126,49 @@ result <- query(mn, solrQuery=queryParamList, as="data.frame", parse=FALSE)
 #### 3) Run all ADC dataset DOIs through `scythe` libraries
 
 ```{r}
-# create list of all ADC DOIs from solr query `result`
-adc_all_dois <- c(result$id)
+# create vector of all ADC DOIs from solr query `result`
+adc_all_dois <- c(result$id[1:10])
+length(adc_all_dois)
+
+# install development version of scythe package with added xdd library
+devtools::install_github("dataoneorg/scythe@develop")
+
+```
+
+- Search for ADC DOIs in `scythe`libraries
+
+```{r}
+# run each library search in parallel in separate background jobs
+job::job({
+  adc_plos <- scythe::citation_search_plos(adc_all_dois)
+})
+
+### try different job::job approach to import environment into background job
+jobargs = list(
+  import = 'all'
+)
+
+job2_code <- quote({
+  
+  adc_scopus <- scythe::citation_search_scopus(adc_all_dois)
+  })
+
+job2_args <- c(jobargs, list(job2 = job2_code))
+do.call(job::job, args = job2_args)
+###
+
+job::job({
+  adc_scopus <- scythe::citation_search_scopus(adc_all_dois)
+})
+
+job::job({
+  adc_springer <- scythe::citation_search_springer(adc_all_dois)
+})
+
+job::job({
+  adc_xdd <- scythe::citation_search_xdd(adc_all_dois)
+})
+
+all <- scythe::citation_search(adc_all_dois, sources = c("plos", "scopus", "springer", "xdd"))
 ```
 
