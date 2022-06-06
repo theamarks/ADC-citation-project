@@ -14,6 +14,9 @@ library(tidyr)
 library(dplyr)
 library(dataone)
 library(job)
+#library(scythe)
+# install development version of scythe package with added xdd library
+devtools::install_github("dataoneorg/scythe@develop")
 ```
 
 ## Run ADC DOIs through `scythe` & compare to known DataONE metrics citations
@@ -102,7 +105,7 @@ cit_2022 <- tidyr::unnest(cit_2022,
 
 DataOne metrics API can only provide data package DOIs with citations, and can not provide a comprehensive list of all data package DOIs contained within the ADC. To search through all the repository metadata we query the DataONE search index (Apache SOLR search engine). SOLR is the same underlying mechanism that DataONE uses in the online tool and can create complex logical query conditions.
 
-```{r}
+```{r SOLR_query}
 # complete list of searchable values
 #getQueryEngineDescription(cn, "solr")
 
@@ -125,21 +128,18 @@ result <- dataone::query(mn, solrQuery=queryParamList, as="data.frame", parse=FA
 
 #### 3) Run all ADC dataset DOIs through `scythe` libraries
 
-```{r}
+```{r All_ADC_DOIs}
 # create vector of all ADC DOIs from solr query `result`
 adc_all_dois <- c(result$id[1:10])
-length(adc_all_dois)
-
-# install development version of scythe package with added xdd library
-devtools::install_github("dataoneorg/scythe@develop")
 
 ```
 
 - Search for ADC DOIs in `scythe`libraries
 
-```{r}
+```{r citation_searches_background_jobs, eval=FALSE}
 # run each library search in parallel in separate background jobs
-# by default job::job({}) imports everything into the job
+# by default job::job({}) imports environment into the job
+# API key values are stored on disk and should be accessible bia any environment 
 
 job::job({
   adc_plos <- scythe::citation_search_plos(adc_all_dois)
