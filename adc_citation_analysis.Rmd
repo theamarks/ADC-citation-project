@@ -107,10 +107,10 @@ DataOne metrics API can only provide data package DOIs with citations, and can n
 #getQueryEngineDescription(cn, "solr")
 
 # set coordinationg node
-cn <- CNode("PROD")
+cn <- dataone::CNode("PROD")
 
 # point to specific member node
-mn <- getMNode(cn, "urn:node:ARCTIC")
+mn <- dataone::getMNode(cn, "urn:node:ARCTIC")
 
 # set up Solr query parameters
 queryParamList <- list(q="id:doi*", 
@@ -120,7 +120,7 @@ queryParamList <- list(q="id:doi*",
 # use `q = "identifier:doi* AND (*:* NOT obsoletedBy:*)"` to only include current versions of data packages 
 
 # send query to Solr, return results as dataframe
-result <- query(mn, solrQuery=queryParamList, as="data.frame", parse=FALSE)
+result <- dataone::query(mn, solrQuery=queryParamList, as="data.frame", parse=FALSE)
 ```
 
 #### 3) Run all ADC dataset DOIs through `scythe` libraries
@@ -139,27 +139,15 @@ devtools::install_github("dataoneorg/scythe@develop")
 
 ```{r}
 # run each library search in parallel in separate background jobs
+# by default job::job({}) imports everything into the job
+
 job::job({
   adc_plos <- scythe::citation_search_plos(adc_all_dois)
 })
 
-### try different job::job approach to import environment into background job
-jobargs = list(
-  import = 'all'
-)
-
-job2_code <- quote({
-  
-  adc_scopus <- scythe::citation_search_scopus(adc_all_dois)
-  })
-
-job2_args <- c(jobargs, list(job2 = job2_code))
-do.call(job::job, args = job2_args)
-###
-
 job::job({
   adc_scopus <- scythe::citation_search_scopus(adc_all_dois)
-})
+  })
 
 job::job({
   adc_springer <- scythe::citation_search_springer(adc_all_dois)
@@ -169,6 +157,7 @@ job::job({
   adc_xdd <- scythe::citation_search_xdd(adc_all_dois)
 })
 
+# Use this as backup for an overnight run
 all <- scythe::citation_search(adc_all_dois, sources = c("plos", "scopus", "springer", "xdd"))
 ```
 
