@@ -21,17 +21,18 @@ devtools::install_github("dataoneorg/scythe@develop")
 
 ## Run ADC DOIs through `scythe` & compare to known DataONE metrics citations
 
-### Methods:
+### Methods Overview:
 
 1) Gather existing/known ADC dataset citations picked up by the automated DataONE metrics API
 2) Get a list of all ADC dataset DOIs
 3) Run all ADC dataset DOIs through `scythe` libraries
 4) Compare citations from `scythe` to DataONE metrics
 
-#### 1) Retrieve all ADC citations with GET API request with the following request body
+### Analysis:
+
+#### 1. Retrieve all ADC citations with GET API request with the following request body
 
 metrics service production endpoint: https://logproc-stage-ucsb-1.test.dataone.org/metrics
-
 
 ```{r get_request_citations, eval=FALSE}
 {
@@ -101,7 +102,7 @@ cit_2022 <- tidyr::unnest(cit_2022,
 
 ```
 
-#### 2) Get all ADC DOIs from SOLR query
+#### 2. Get all ADC DOIs from SOLR query
 
 DataOne metrics API can only provide data package DOIs with citations, and can not provide a comprehensive list of all data package DOIs contained within the ADC. To search through all the repository metadata we query the DataONE search index (Apache SOLR search engine). SOLR is the same underlying mechanism that DataONE uses in the online tool and can create complex logical query conditions.
 
@@ -126,38 +127,44 @@ queryParamList <- list(q="id:doi*",
 result <- dataone::query(mn, solrQuery=queryParamList, as="data.frame", parse=FALSE)
 ```
 
-#### 3) Run all ADC dataset DOIs through `scythe` libraries
+#### 3. Run all ADC dataset DOIs through `scythe` libraries
 
 ```{r All_ADC_DOIs}
 # create vector of all ADC DOIs from solr query `result`
-adc_all_dois <- c(result$id[1:10])
-
+adc_all_dois <- c(result$id)
 ```
 
-- Search for ADC DOIs in `scythe`libraries
+Run each library search in parallel in separate background jobs to keep console available to work with. This will take a long time because of the number of DOIs. By default the `job::job()` imports the global environment into the background job.
+
+**Important Note** `scythe::scythe_set_key()` is a wrapper for the `key_ring` package. An interactive password prompt is required to access the API keys stored in `key_ring`. This *does not work* within a background job environment; your keyring needs to be temporarily unlocked with `keyring::keyring_unlock("scythe", "your password")` replace `password` with your actual keyring password. Be careful not to save, commit, or push your personal keyring password.
 
 ```{r citation_searches_background_jobs, eval=FALSE}
-# run each library search in parallel in separate background jobs
-# by default job::job({}) imports environment into the job
-# API key values are stored on disk and should be accessible bia any environment 
 
 job::job({
-  adc_plos <- scythe::citation_search_plos(adc_all_dois)
-})
+  keyring::keyring_unlock("scythe", "password")
+  adc_plos <- scythe::citation_search_plos(adc_all_dois)},
+  title = "plos search"
+  )
 
 job::job({
-  adc_scopus <- scythe::citation_search_scopus(adc_all_dois)
-  })
+  keyring::keyring_unlock("scythe", "password")
+  adc_scopus <- scythe::citation_search_scopus(adc_all_dois)},
+  title = "scopus search"
+  )
 
 job::job({
-  adc_springer <- scythe::citation_search_springer(adc_all_dois)
-})
+  keyring::keyring_unlock("scythe", "password")
+  adc_springer <- scythe::citation_search_springer(adc_all_dois)},
+  title = "springer search"
+  )
 
 job::job({
-  adc_xdd <- scythe::citation_search_xdd(adc_all_dois)
-})
+  keyring::keyring_unlock("scythe", "password")
+  adc_xdd <- scythe::citation_search_xdd(adc_all_dois)},
+  title = "xdd search"
+  )
 
 # Use this as backup for an overnight run
-all <- scythe::citation_search(adc_all_dois, sources = c("plos", "scopus", "springer", "xdd"))
+#all <- scythe::citation_search(adc_all_dois, sources = c("plos", "scopus", "springer", "xdd"))
 ```
 
