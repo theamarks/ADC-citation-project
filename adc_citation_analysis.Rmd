@@ -17,6 +17,9 @@ library(dplyr)
 library(dataone)
 library(job)
 #library(scythe)
+library(purrr)
+
+
 # install development version of scythe package with added xdd library
 devtools::install_github("dataoneorg/scythe@develop")
 ```
@@ -143,31 +146,68 @@ Run each library search in parallel in separate background jobs to keep console 
 
 ```{r citation_searches_background_jobs, eval=FALSE}
 
+# break up ADC DOI catelog into smaller chunks to make API requests more manageable
+
+libraries <- c("plos", "scopus", "springer", "xdd")
+
+# instead of breaking doi vector into chunks, try looping or apply over each individual doi within adc_all_dois
+# will not batch fail, will succeed until failure. 
+
+search_libs_chunk_jobs <- function(lib, dois, key) {
+  chunks <- c(seq(0, length(dois), by = 1000), length(dois)) # break up list of DOIs into chunks of
+  for (i in seq_along(chunks)) {
+    #job::job({
+      keyring::keyring_unlock("scythe", key)
+    if(exists(paste("adc", lib, i, sep = "_"))){
+      
+    }
+      assign(paste("adc", lib, i, sep = "_"),
+             scythe::citation_search(dois[chunks[i]:chunks[i+2]], lib))
+    #})
+  }
+}
+
 job::job({
-  keyring::keyring_unlock("scythe", "password")
   adc_plos <- scythe::citation_search_plos(adc_all_dois)},
   title = "plos search"
   )
 
 job::job({
   keyring::keyring_unlock("scythe", "password")
-  adc_scopus <- scythe::citation_search_scopus(adc_all_dois)},
+  adc_scopus <- scythe::citation_search_scopus(adc_all_dois[1:1000])},
   title = "scopus search"
   )
 
 job::job({
   keyring::keyring_unlock("scythe", "password")
-  adc_springer <- scythe::citation_search_springer(adc_all_dois)},
+  adc_springer <- scythe::citation_search_springer(test)},
   title = "springer search"
   )
 
 job::job({
-  keyring::keyring_unlock("scythe", "password")
   adc_xdd <- scythe::citation_search_xdd(adc_all_dois)},
   title = "xdd search"
   )
 
-# Use this as backup for an overnight run
-#all <- scythe::citation_search(adc_all_dois, sources = c("plos", "scopus", "springer", "xdd"))
+```
+
+```{r save_results}
+# function to write api search results to csv within Rproject
+# built in check for result files
+
+write_api_results <- function(lib){
+  for(i in seq_along(lib)){
+    if(exists(paste0("adc_", lib[i]))){ # this needs work doesn't match format of "adc_plos_1"
+    eval(parse(text = paste('write.csv(adc_', lib[i], ', file = "./doi_results_', 
+                            lib[i] ,"_", Sys.Date(),'.csv")', sep = "")))
+    print(paste0(lib[i], " results saved"))
+  } else{
+    print(paste0(lib[i], " results NOT found"))
+  }
+  }
+}
+
+purrr::map(libraries, write_api_results)
+
 ```
 
