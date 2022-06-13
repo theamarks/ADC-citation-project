@@ -25,7 +25,7 @@ devtools::install_github("dataoneorg/scythe@develop")
 ```
 
 ### Purpose: 
-Run ADC DOIs through `scythe` & compare to known DataONE metrics citations
+Run ADC DOIs through `scythe` & compare to known DataONE metrics citations. Known ADC citations have mixed origins including DataCite, pervious `scythe` runs, and mannual additions via the ADC UI. 
 
 ### Methods Overview:
 
@@ -146,26 +146,39 @@ Run each library search in parallel in separate background jobs to keep console 
 
 ```{r citation_searches_background_jobs, eval=FALSE}
 
-# break up ADC DOI catelog into smaller chunks to make API requests more manageable
+# break up ADC DOI catalog into smaller chunks to make API requests more manageable
 
 libraries <- c("plos", "scopus", "springer", "xdd")
 
 # instead of breaking doi vector into chunks, try looping or apply over each individual doi within adc_all_dois
 # will not batch fail, will succeed until failure. 
+key <- "password"
+lib <- "scopus"
+.x <- adc_all_dois[1:200]
 
-search_libs_chunk_jobs <- function(lib, dois, key) {
-  chunks <- c(seq(0, length(dois), by = 1000), length(dois)) # break up list of DOIs into chunks of
-  for (i in seq_along(chunks)) {
-    #job::job({
-      keyring::keyring_unlock("scythe", key)
-    if(exists(paste("adc", lib, i, sep = "_"))){
-      
-    }
-      assign(paste("adc", lib, i, sep = "_"),
-             scythe::citation_search(dois[chunks[i]:chunks[i+2]], lib))
-    #})
-  }
+
+job::job({
+  keyring::keyring_unlock("scythe", key)
+  output <-
+    purrr::map_df(.x, .f = scythe::citation_search,... = lib)
+  
+})
+
+
+
+
+search_libs_job <- function(lib, dois, key) {
+  job::job({
+    keyring::keyring_unlock("scythe", key)
+    result <- purrr::map_df(.x = dois, 
+                             .f = scythe::citation_search
+   # result <- apply(FUN = scythe::citation_search(), identifiers = dois, source = lib)
+    return(result)
+  })
 }
+
+# assign(paste("adc", lib, i, sep = "_"),
+#              scythe::citation_search(dois[chunks[i]:chunks[i+2]], lib))
 
 job::job({
   adc_plos <- scythe::citation_search_plos(adc_all_dois)},
@@ -211,3 +224,5 @@ purrr::map(libraries, write_api_results)
 
 ```
 
+[Root of ADC discipline semantics annotations](https://bioportal.bioontology.org/ontologies/ADCAD/?p=classes&conceptid=root) Classes/ID is where to look for query specifics.
+"Here’s an example SOLR query that looks for two of those disciplines: `https://cn.dataone.org/cn/v2/query/solr/?q=sem_annotation:*ADCAD_00077+OR+sem_annotation:*ADCAD_00005&fl=identifier,formatId,sem_annotation`" - Marr
