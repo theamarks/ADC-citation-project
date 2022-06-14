@@ -152,17 +152,34 @@ libraries <- c("plos", "scopus", "springer", "xdd")
 
 # instead of breaking doi vector into chunks, try looping or apply over each individual doi within adc_all_dois
 # will not batch fail, will succeed until failure. 
-key <- "password"
-lib <- "scopus"
-.x <- adc_all_dois[1:200]
+
+# regular
+# keyring::keyring_unlock("scythe", key)
+# output <- scythe::citation_search(.x, lib)
+
+# purrr way
+search_libs_job <- function(lib, key, dois){
+  job::job({
+    keyring::keyring_unlock("scythe", key)
+    assign(paste0("citations_", lib), 
+           purrr::map_df(.x  = dois, 
+                         .f = scythe::citation_search, 
+                         source = lib))
+   # return(paste0("citations_", lib)) # Not needed when running in background job
+    }, title = paste0(lib, " citation search"))
+}
+
+search_libs_job("scopus", "password", adc_all_dois[1:200])
+
+# programically search all libraries at once
+purrr::map_df(libraries, 
+              search_libs_job, 
+              key = "password", 
+              dois = adc_all_dois[1:200])
 
 
-job::job({
-  keyring::keyring_unlock("scythe", key)
-  output <-
-    purrr::map_df(.x, .f = scythe::citation_search,... = lib)
-  
-})
+
+
 
 
 
@@ -225,4 +242,5 @@ purrr::map(libraries, write_api_results)
 ```
 
 [Root of ADC discipline semantics annotations](https://bioportal.bioontology.org/ontologies/ADCAD/?p=classes&conceptid=root) Classes/ID is where to look for query specifics.
-"Here’s an example SOLR query that looks for two of those disciplines: `https://cn.dataone.org/cn/v2/query/solr/?q=sem_annotation:*ADCAD_00077+OR+sem_annotation:*ADCAD_00005&fl=identifier,formatId,sem_annotation`" - Marr
+"Here’s an example SOLR query that looks for two of those disciplines: `https://cn.dataone.org/cn/v2/query/solr/?q=sem_annotation:*ADCAD_00077+OR+sem_annotation:*ADCAD_00005&fl=identifier,formatId,sem_annotation`" - Matt 
+Need to list every single SS ID in query list, not set up to query umbrella SS ID just yet
