@@ -153,10 +153,6 @@ libraries <- c("plos", "scopus", "springer", "xdd")
 # instead of breaking doi vector into chunks, try looping or apply over each individual doi within adc_all_dois
 # will not batch fail, will succeed until failure. 
 
-# regular
-# keyring::keyring_unlock("scythe", key)
-# output <- scythe::citation_search(.x, lib)
-
 # purrr way
 search_libs_job <- function(lib, key, dois){
   job::job({
@@ -164,12 +160,18 @@ search_libs_job <- function(lib, key, dois){
     assign(paste0("citations_", lib), 
            purrr::map_df(.x  = dois, 
                          .f = scythe::citation_search, 
-                         source = lib))
-   # return(paste0("citations_", lib)) # Not needed when running in background job
-    }, title = paste0(lib, " citation search"))
+                         sources = lib))
+    }, title = paste0(lib, " citation search ", Sys.time()))
 }
 
+
 search_libs_job("scopus", "password", adc_all_dois[1:200])
+# xdd and springer doesn't work with purrr::map_dfr() or map_df() - bind_rows() part of map functions
+
+xdd <- job::job({
+  purrr::map_df(.x  = adc_all_dois[1:500], .f = scythe::citation_search, sources = "xdd")
+})
+
 
 # programically search all libraries at once
 purrr::map_df(libraries, 
@@ -177,47 +179,20 @@ purrr::map_df(libraries,
               key = "password", 
               dois = adc_all_dois[1:200])
 
+####### Basic testing
+
+# This works
+job::job({xdd_reg <- scythe::citation_search(adc_all_dois[1:200], sources = "xdd")})
+
+# This works
+job::job({springer_reg <- scythe::citation_search(adc_all_dois[1:200], sources = "springer")})
+
+job::job({plos_reg <- scythe::citation_search(adc_all_dois[1:200], sources = "plos")})
+
+job::job({scopus_reg <- scythe::citation_search(adc_all_dois[1:200], sources = "scopus")})
 
 
 
-
-
-
-
-search_libs_job <- function(lib, dois, key) {
-  job::job({
-    keyring::keyring_unlock("scythe", key)
-    result <- purrr::map_df(.x = dois, 
-                             .f = scythe::citation_search
-   # result <- apply(FUN = scythe::citation_search(), identifiers = dois, source = lib)
-    return(result)
-  })
-}
-
-# assign(paste("adc", lib, i, sep = "_"),
-#              scythe::citation_search(dois[chunks[i]:chunks[i+2]], lib))
-
-job::job({
-  adc_plos <- scythe::citation_search_plos(adc_all_dois)},
-  title = "plos search"
-  )
-
-job::job({
-  keyring::keyring_unlock("scythe", "password")
-  adc_scopus <- scythe::citation_search_scopus(adc_all_dois[1:1000])},
-  title = "scopus search"
-  )
-
-job::job({
-  keyring::keyring_unlock("scythe", "password")
-  adc_springer <- scythe::citation_search_springer(test)},
-  title = "springer search"
-  )
-
-job::job({
-  adc_xdd <- scythe::citation_search_xdd(adc_all_dois)},
-  title = "xdd search"
-  )
 
 ```
 
