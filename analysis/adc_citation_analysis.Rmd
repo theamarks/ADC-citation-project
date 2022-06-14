@@ -146,16 +146,9 @@ Run each library search in parallel in separate background jobs to keep console 
 
 ```{r citation_searches_background_jobs, eval=FALSE}
 
-# break up ADC DOI catalog into smaller chunks to make API requests more manageable
-
-libraries <- c("plos", "scopus", "springer", "xdd")
-
-# instead of breaking doi vector into chunks, try looping or apply over each individual doi within adc_all_dois
-# will not batch fail, will succeed until failure. 
+# Run each source/library search in a separate background job. Running a for loop will return incomplete results if API query fails, which is better than loosing all progress because of a single error. 
 
 key <- "password"
-
-####### Loop way ###########
 
 # Scopus
 citations_scopus <- data.frame()
@@ -200,47 +193,6 @@ job::job({
   citations_xdd <- rbind(citations_xdd, citation)
   }
 }, title = paste0("xdd citation search ", Sys.time()))
-
-
-####### purrr way #########
-search_libs_job <- function(lib, key, dois){
-  job::job({
-    keyring::keyring_unlock("scythe", key)
-    assign(paste0("citations_", lib), 
-           purrr::map_df(.x  = dois, 
-                         .f = scythe::citation_search, 
-                         sources = lib))
-    }, title = paste0(lib, " citation search ", Sys.time()))
-}
-
-
-search_libs_job("scopus", "password", adc_all_dois[1:200])
-# xdd and springer doesn't work with purrr::map_dfr() or map_df() - bind_rows() part of map functions
-
-xdd <- job::job({
-  purrr::map_df(.x  = adc_all_dois[1:500], .f = scythe::citation_search, sources = "xdd")
-})
-
-
-# programically search all libraries at once
-purrr::map_df(libraries, 
-              search_libs_job, 
-              key = "password", 
-              dois = adc_all_dois[1:200])
-
-####### Basic testing
-
-# This works
-job::job({xdd_reg <- scythe::citation_search(adc_all_dois[1:200], sources = "xdd")})
-
-# This works
-job::job({springer_reg <- scythe::citation_search(adc_all_dois[1:200], sources = "springer")})
-
-job::job({plos_reg <- scythe::citation_search(adc_all_dois[1:200], sources = "plos")})
-
-job::job({scopus_reg <- scythe::citation_search(adc_all_dois[1:200], sources = "scopus")})
-
-
 
 
 ```
