@@ -150,12 +150,13 @@ Run each library search in parallel in separate background jobs to keep console 
 
 key <- "password"
 
+#### tryCatch that iterates beyond error - https://www.youtube.com/watch?v=_0X8hRcM5YI
 # Scopus
 citations_scopus <- data.frame()
 
 job::job({
   for (i in seq_along(adc_all_dois[1:200])) {
-    # access API keys within background job
+    # access API keys within background job environment
     keyring::keyring_unlock("scythe", key)
     # suppress errors and continue loop iteration
     try({
@@ -167,7 +168,7 @@ job::job({
   }
 }, title = paste0("scopus citation search ", Sys.time()))
 
-#### tryCatch that produces NAs
+#### tryCatch that produces NAs - https://stackoverflow.com/questions/14668972/catch-an-error-by-producing-na
 # Springer
 citations_springer <- data.frame()
 
@@ -180,6 +181,10 @@ job::job({
     citations_springer <- rbind(citations_springer, result)
   }
 }, title = paste0("springer citation search ", Sys.time()))
+
+
+
+
 
 # PLOS
 citations_plos <- data.frame()
