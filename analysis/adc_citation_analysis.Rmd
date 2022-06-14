@@ -156,17 +156,50 @@ libraries <- c("plos", "scopus", "springer", "xdd")
 key <- "password"
 
 ####### Loop way ###########
+
+# Scopus
 citations_scopus <- data.frame()
 
-for (i in seq_along(adc_all_dois[1:200])){
+job::job({
+  for (i in seq_along(adc_all_dois[1:200])){
   keyring::keyring_unlock("scythe", key)
   citation <- scythe::citation_search(adc_all_dois[1:200][i], "scopus")
   citations_scopus <- rbind(citations_scopus, citation)
-}
+  }
+}, title = paste0("scopus citation search ", Sys.time()))
 
+# Springer
+citations_springer <- data.frame()
 
+job::job({
+  for (i in seq_along(adc_all_dois[1:200])){
+  keyring::keyring_unlock("scythe", key)
+  citation <- scythe::citation_search(adc_all_dois[1:200][i], "springer")
+  citations_springer <- rbind(citations_springer, citation)
+  }
+}, title = paste0("springer citation search ", Sys.time()))
 
+# PLOS
+citations_plos <- data.frame()
 
+job::job({
+  for (i in seq_along(adc_all_dois[1:200])){
+  keyring::keyring_unlock("scythe", key)
+  citation <- scythe::citation_search(adc_all_dois[1:200][i], "plos")
+  citations_plos <- rbind(citations_plos, citation)
+  }
+}, title = paste0("plos citation search ", Sys.time()))
+
+# xdd
+citations_xdd <- data.frame()
+
+job::job({
+  for (i in seq_along(adc_all_dois[1:200])){
+  keyring::keyring_unlock("scythe", key)
+  citation <- scythe::citation_search(adc_all_dois[1:200][i], "xdd")
+  citations_xdd <- rbind(citations_xdd, citation)
+  }
+}, title = paste0("xdd citation search ", Sys.time()))
 
 
 ####### purrr way #########
