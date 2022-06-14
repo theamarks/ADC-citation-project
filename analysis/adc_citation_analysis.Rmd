@@ -157,26 +157,27 @@ job::job({
   for (i in seq_along(adc_all_dois[1:200])) {
     # access API keys within background job
     keyring::keyring_unlock("scythe", key)
-    # supress errors and continue loop iteration
+    # suppress errors and continue loop iteration
     try({
+      # search for single DOI in source
       citation <- scythe::citation_search(adc_all_dois[1:200][i], "scopus")
+      # bind single results together in single data frame
       citations_scopus <- rbind(citations_scopus, citation)
     }, silent = TRUE)
   }
 }, title = paste0("scopus citation search ", Sys.time()))
 
-
-
-
-
+#### tryCatch that produces NAs
 # Springer
 citations_springer <- data.frame()
 
 job::job({
   for (i in seq_along(adc_all_dois[1:200])){
-  keyring::keyring_unlock("scythe", key)
-  citation <- scythe::citation_search(adc_all_dois[1:200][i], "springer")
-  citations_springer <- rbind(citations_springer, citation)
+    keyring::keyring_unlock("scythe", key)
+    result <- tryCatch(
+      citation <- scythe::citation_search(adc_all_dois[1:200][i], "springer"), 
+      error = function(err) NA)
+    citations_springer <- rbind(citations_springer, result)
   }
 }, title = paste0("springer citation search ", Sys.time()))
 
