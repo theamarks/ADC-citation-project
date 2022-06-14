@@ -154,12 +154,20 @@ key <- "password"
 citations_scopus <- data.frame()
 
 job::job({
-  for (i in seq_along(adc_all_dois[1:200])){
-  keyring::keyring_unlock("scythe", key)
-  citation <- scythe::citation_search(adc_all_dois[1:200][i], "scopus")
-  citations_scopus <- rbind(citations_scopus, citation)
+  for (i in seq_along(adc_all_dois[1:200])) {
+    # access API keys within background job
+    keyring::keyring_unlock("scythe", key)
+    # supress errors and continue loop iteration
+    try({
+      citation <- scythe::citation_search(adc_all_dois[1:200][i], "scopus")
+      citations_scopus <- rbind(citations_scopus, citation)
+    }, silent = TRUE)
   }
 }, title = paste0("scopus citation search ", Sys.time()))
+
+
+
+
 
 # Springer
 citations_springer <- data.frame()
