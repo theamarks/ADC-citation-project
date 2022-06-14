@@ -17,7 +17,7 @@ library(dplyr)
 library(dataone)
 library(job)
 #library(scythe)
-library(purrr)
+#library(purrr)
 
 
 # install development version of scythe package with added xdd library
@@ -153,7 +153,23 @@ libraries <- c("plos", "scopus", "springer", "xdd")
 # instead of breaking doi vector into chunks, try looping or apply over each individual doi within adc_all_dois
 # will not batch fail, will succeed until failure. 
 
-# purrr way
+key <- "password"
+
+####### Loop way ###########
+citations_scopus <- data.frame()
+
+for (i in seq_along(adc_all_dois[1:200])){
+  keyring::keyring_unlock("scythe", key)
+  citation <- scythe::citation_search(adc_all_dois[1:200][i], "scopus")
+  citations_scopus <- rbind(citations_scopus, citation)
+}
+
+
+
+
+
+
+####### purrr way #########
 search_libs_job <- function(lib, key, dois){
   job::job({
     keyring::keyring_unlock("scythe", key)
