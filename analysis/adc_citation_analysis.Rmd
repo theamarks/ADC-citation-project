@@ -146,7 +146,7 @@ Run each library search in parallel in separate background jobs to keep console 
 
 ```{r citation_searches_background_jobs, eval=FALSE}
 
-# Run each source/library search in a separate background job. Running a for loop will return incomplete results if API query fails, which is better than loosing all progress because of a single error. 
+# Run each source/library search in a separate background job. Running a for loop will return incomplete results if API query fails, which is better than loosing all progress because of a single error in a single vector call.  
 
 key <- "password"
 
@@ -168,6 +168,9 @@ job::job({
   }
 }, title = paste0("scopus citation search ", Sys.time()))
 
+
+
+
 #### tryCatch that produces NAs - https://stackoverflow.com/questions/14668972/catch-an-error-by-producing-na
 # Springer
 citations_springer <- data.frame()
@@ -183,7 +186,8 @@ job::job({
 }, title = paste0("springer citation search ", Sys.time()))
 
 
-
+# create blank / NA dataframe to rbind error to successful results per Jeanette's suggestion. insert in tryCatch()
+setNames(data.frame(matrix(ncol = 4, nrow = 0)), c("article_id", "article_title", "dataset_id", "source"))
 
 
 # PLOS
