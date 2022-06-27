@@ -150,10 +150,39 @@ Run each library search in parallel in separate background jobs to keep console 
 
 key <- "password"
 
-#### tryCatch that iterates beyond error - https://www.youtube.com/watch?v=_0X8hRcM5YI
-# Scopus
-citations_scopus <- data.frame()
 
+#### tryCatch that iterates beyond error - https://www.youtube.com/watch?v=_0X8hRcM5YI
+# This works with test_er_vec - results in 15 successful citations, the same as adc_all_dois[1:200], does not display anything for error returning "bad.doi.example" value. 
+# Scopus
+
+#jeanette help
+citation <- list()
+
+for (i in 1:length(test_er_vec)) {
+  # access API keys within background job environment
+  keyring::keyring_unlock("scythe", key)
+  # suppress errors and continue loop iteration
+  tryCatch({
+    # search for single DOI in source
+    citation[[i]] <- scythe::citation_search(test_er_vec[i], "scopus")
+  },
+  error = function() {
+    return(
+      data.frame(
+        article_id = NA,
+        article_titel = NA,
+        dataset_id = adc_all_dois[1:200][i],
+        source = "scopus"
+      )
+    )
+  })
+
+  }
+  citation_full <- do.call(rbind, citation)
+    
+    
+# thea
+citations_scopus <- data.frame()
 job::job({
   for (i in seq_along(adc_all_dois[1:200])) {
     # access API keys within background job environment
@@ -174,11 +203,18 @@ job::job({
 citations_springer <- data.frame()
 
 job::job({
-  for (i in seq_along(adc_all_dois[1:200])){
+  for (i in seq_along(adc_all_dois[1:200])) {
     keyring::keyring_unlock("scythe", key)
-    result <- tryCatch(
-      citation <- scythe::citation_search(adc_all_dois[1:200][i], "springer"), 
-      error <- function(err) data.frame("article_id" = NA, "article_title" = NA, "dataset_id" = NA, "source" = NA))
+    result <- tryCatch(citation <- scythe::citation_search(adc_all_dois[1:200][i], "springer"),
+      error = function(err) {
+        data.frame(
+          "article_id" = NA,
+          "article_title" = NA,
+          "dataset_id" = NA,
+          "source" = NA
+        )
+      }
+    )
     citations_springer <- rbind(citations_springer, result)
   }
 }, title = paste0("springer citation search ", Sys.time()))
@@ -187,7 +223,9 @@ job::job({
 # create blank / NA dataframe to rbind error to successful results per Jeanette's suggestion. insert in tryCatch()
 test <- data.frame("article_id" = NA, "article_title" = NA, "dataset_id" = NA, "source" = NA)
 
+```
 
+``` {r}
 # PLOS
 citations_plos <- data.frame()
 
