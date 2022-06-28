@@ -148,17 +148,17 @@ Run each library search in parallel in separate background jobs to keep console 
 
 # Run each source/library search in a separate background job. Running a for loop will return incomplete results if API query fails, which is better than loosing all progress because of a single error in a single vector call.  
 
-#key <- "password"
+key <- "password"
 
 # Scopus
 citations_scopus <- data.frame()
 
 job::job({
-  for (i in seq_along(adc_all_dois[1:200])) {
+  for (i in seq_along(adc_all_dois)) {
     # access API keys within background job environment
     keyring::keyring_unlock("scythe", key)
     # suppress errors and continue loop iteration
-    result <- tryCatch(citation <- scythe::citation_search(adc_all_dois[1:200][i], "scopus"),
+    result <- tryCatch(citation <- scythe::citation_search(adc_all_dois[i], "scopus"),
                        error = function(err) {
                          data.frame("article_id" = NA,
                                     "article_title" = NA,
@@ -174,11 +174,11 @@ job::job({
 citations_springer <- data.frame()
 
 job::job({
-  for (i in seq_along(adc_all_dois[1:200])) {
+  for (i in seq_along(adc_all_dois)) {
     # access API keys within background job environment
     keyring::keyring_unlock("scythe", key)
     # suppress errors and continue loop iteration
-    result <- tryCatch(citation <- scythe::citation_search(adc_all_dois[1:200][i], "springer"),
+    result <- tryCatch(citation <- scythe::citation_search(adc_all_dois[i], "springer"),
                        error = function(err) {
                          data.frame("article_id" = NA,
                                     "article_title" = NA,
@@ -194,11 +194,11 @@ job::job({
 citations_plos <- data.frame()
 
 job::job({
-  for (i in seq_along(adc_all_dois[1:200])) {
+  for (i in seq_along(adc_all_dois)) {
     # access API keys within background job environment
     keyring::keyring_unlock("scythe", key)
     # suppress errors and continue loop iteration
-    result <- tryCatch(citation <- scythe::citation_search(adc_all_dois[1:200][i], "plos"),
+    result <- tryCatch(citation <- scythe::citation_search(adc_all_dois[i], "plos"),
                        error = function(err) {
                          data.frame("article_id" = NA,
                                     "article_title" = NA,
@@ -215,11 +215,11 @@ job::job({
 citations_xdd <- data.frame()
 
 job::job({
-  for (i in seq_along(adc_all_dois[1:200])) {
+  for (i in seq_along(adc_all_dois)) {
     # access API keys within background job environment
     keyring::keyring_unlock("scythe", key)
     # suppress errors and continue loop iteration
-    result <- tryCatch(citation <- scythe::citation_search(adc_all_dois[1:200][i], "xdd"),
+    result <- tryCatch(citation <- scythe::citation_search(adc_all_dois[i], "xdd"),
                        error = function(err) {
                          data.frame("article_id" = NA,
                                     "article_title" = NA,
