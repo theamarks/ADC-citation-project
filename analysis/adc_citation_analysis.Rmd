@@ -234,12 +234,12 @@ job::job({
 }, title = paste0("xdd citation search ", Sys.time()))
 ```
 
-```{r}
+```{r save_scythe_results, eval=FALSE}
 ## Save results
-write.csv(citations_scopus, file = paste0("../output/scythe_citations_scopus_", Sys.Date(), ".csv"))
-write.csv(citations_springer, file = paste0("../output/scythe_citations_springer_", Sys.Date(), ".csv"))
-write.csv(citations_plos, file = paste0("../output/scythe_citations_plos_", Sys.Date(), ".csv"))
-write.csv(citations_xdd, file = paste0("../output/scythe_citations_xdd_", Sys.Date(), ".csv"))
+write.csv(citations_scopus, file = paste0("../output/scythe_citations_scopus_", Sys.Date(), ".csv"), row.names = F)
+write.csv(citations_springer, file = paste0("../output/scythe_citations_springer_", Sys.Date(), ".csv"), row.names = F)
+write.csv(citations_plos, file = paste0("../output/scythe_citations_plos_", Sys.Date(), ".csv"), row.names = F)
+write.csv(citations_xdd, file = paste0("../output/scythe_citations_xdd_", Sys.Date(), ".csv"), row.names = F)
 
 ```
 
