@@ -162,6 +162,7 @@ job::job({
     # suppress errors and continue loop iteration
     result <- tryCatch(citation <- scythe::citation_search(adc_all_dois[i], "scopus"),
                        error = function(err) {
+                         print(err)
                          data.frame("article_id" = NA,
                                     "article_title" = NA,
                                     "dataset_id" = adc_all_dois[i],
@@ -182,6 +183,7 @@ job::job({
     # suppress errors and continue loop iteration
     result <- tryCatch(citation <- scythe::citation_search(adc_all_dois[i], "springer"),
                        error = function(err) {
+                         print(err)
                          data.frame("article_id" = NA,
                                     "article_title" = NA,
                                     "dataset_id" = adc_all_dois[i],
@@ -202,6 +204,7 @@ job::job({
     # suppress errors and continue loop iteration
     result <- tryCatch(citation <- scythe::citation_search(adc_all_dois[i], "plos"),
                        error = function(err) {
+                         print(err)
                          data.frame("article_id" = NA,
                                     "article_title" = NA,
                                     "dataset_id" = adc_all_dois[i],
@@ -223,6 +226,7 @@ job::job({
     # suppress errors and continue loop iteration
     result <- tryCatch(citation <- scythe::citation_search(adc_all_dois[i], "xdd"),
                        error = function(err) {
+                         print(err)
                          data.frame("article_id" = NA,
                                     "article_title" = NA,
                                     "dataset_id" = adc_all_dois[i],
@@ -236,10 +240,10 @@ job::job({
 
 ```{r save_scythe_results, eval=FALSE}
 ## Save results
-write.csv(citations_scopus, file = paste0("../output/scythe_citations_scopus_", Sys.Date(), ".csv"), row.names = F)
-write.csv(citations_springer, file = paste0("../output/scythe_citations_springer_", Sys.Date(), ".csv"), row.names = F)
-write.csv(citations_plos, file = paste0("../output/scythe_citations_plos_", Sys.Date(), ".csv"), row.names = F)
-write.csv(citations_xdd, file = paste0("../output/scythe_citations_xdd_", Sys.Date(), ".csv"), row.names = F)
+write.csv(citations_scopus, file = paste0("../output/scythe_scopus_", Sys.Date(), ".csv"), row.names = F)
+write.csv(citations_springer, file = paste0("../output/scythe_springer_", Sys.Date(), ".csv"), row.names = F)
+write.csv(citations_plos, file = paste0("../output/scythe_plos_", Sys.Date(), ".csv"), row.names = F)
+write.csv(citations_xdd, file = paste0("../output/scythe_xdd_", Sys.Date(), ".csv"), row.names = F)
 
 ```
 
