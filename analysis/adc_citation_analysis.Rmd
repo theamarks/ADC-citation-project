@@ -130,7 +130,9 @@ queryParamList <- list(q="id:doi*",
 # use `q = "identifier:doi* AND (*:* NOT obsoletedBy:*)"` to only include current versions of data packages 
 
 # send query to Solr, return results as dataframe
-solr_result <- dataone::query(mn, solrQuery=queryParamList, as="data.frame", parse=FALSE)
+solr_adc_result <- dataone::query(mn, solrQuery=queryParamList, as="data.frame", parse=FALSE)
+
+write.csv(citations_scopus, file = paste0("../output/solr_adc_", Sys.Date(), ".csv"))
 ```
 
 #### 3. Run all ADC dataset DOIs through `scythe` libraries
@@ -148,7 +150,7 @@ Run each library search in parallel in separate background jobs to keep console 
 
 # Run each source/library search in a separate background job. Running a for loop will return incomplete results if API query fails, which is better than loosing all progress because of a single error in a single vector call.  
 
-key <- "password"
+#key <- "password"
 
 # Scopus
 citations_scopus <- data.frame()
