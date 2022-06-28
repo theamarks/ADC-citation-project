@@ -130,7 +130,7 @@ queryParamList <- list(q="id:doi*",
 # use `q = "identifier:doi* AND (*:* NOT obsoletedBy:*)"` to only include current versions of data packages 
 
 # send query to Solr, return results as dataframe
-result <- dataone::query(mn, solrQuery=queryParamList, as="data.frame", parse=FALSE)
+solr_result <- dataone::query(mn, solrQuery=queryParamList, as="data.frame", parse=FALSE)
 ```
 
 #### 3. Run all ADC dataset DOIs through `scythe` libraries
@@ -162,8 +162,8 @@ job::job({
                        error = function(err) {
                          data.frame("article_id" = NA,
                                     "article_title" = NA,
-                                    "dataset_id" = NA,
-                                    "source" = NA)
+                                    "dataset_id" = adc_all_dois[i],
+                                    "source" = "scopus")
                          }
                        )
     citations_scopus <- rbind(citations_scopus, result)
@@ -182,8 +182,8 @@ job::job({
                        error = function(err) {
                          data.frame("article_id" = NA,
                                     "article_title" = NA,
-                                    "dataset_id" = NA,
-                                    "source" = NA)
+                                    "dataset_id" = adc_all_dois[i],
+                                    "source" = "springer")
                          }
                        )
     citations_springer <- rbind(citations_springer, result)
@@ -202,8 +202,8 @@ job::job({
                        error = function(err) {
                          data.frame("article_id" = NA,
                                     "article_title" = NA,
-                                    "dataset_id" = NA,
-                                    "source" = NA)
+                                    "dataset_id" = adc_all_dois[i],
+                                    "source" = "plos")
                          }
                        )
     citations_plos <- rbind(citations_plos, result)
@@ -223,8 +223,8 @@ job::job({
                        error = function(err) {
                          data.frame("article_id" = NA,
                                     "article_title" = NA,
-                                    "dataset_id" = NA,
-                                    "source" = NA)
+                                    "dataset_id" = adc_all_dois[i],
+                                    "source" = "xdd")
                          }
                        )
     citations_xdd <- rbind(citations_xdd, result)
