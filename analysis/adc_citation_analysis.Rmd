@@ -148,7 +148,7 @@ Run each library search in parallel in separate background jobs to keep console 
 
 # Run each source/library search in a separate background job. Running a for loop will return incomplete results if API query fails, which is better than loosing all progress because of a single error in a single vector call.  
 
-key <- "password"
+#key <- "password"
 
 # Scopus
 citations_scopus <- data.frame()
@@ -167,7 +167,7 @@ job::job({
                          }
                        )
     citations_scopus <- rbind(citations_scopus, result)
-    }
+  }
 }, title = paste0("scopus citation search ", Sys.time()))
 
 # Springer
@@ -232,49 +232,12 @@ job::job({
 }, title = paste0("xdd citation search ", Sys.time()))
 ```
 
-``` {r}
-# PLOS
-citations_plos <- data.frame()
-
-job::job({
-  for (i in seq_along(adc_all_dois[1:200])){
-  keyring::keyring_unlock("scythe", key)
-  citation <- scythe::citation_search(adc_all_dois[1:200][i], "plos")
-  citations_plos <- rbind(citations_plos, citation)
-  }
-}, title = paste0("plos citation search ", Sys.time()))
-
-# xdd
-citations_xdd <- data.frame()
-
-job::job({
-  for (i in seq_along(adc_all_dois[1:200])){
-  keyring::keyring_unlock("scythe", key)
-  citation <- scythe::citation_search(adc_all_dois[1:200][i], "xdd")
-  citations_xdd <- rbind(citations_xdd, citation)
-  }
-}, title = paste0("xdd citation search ", Sys.time()))
-
-
-```
-
-```{r save_results, eval = F}
-# function to write api search results to csv within Rproject
-# built in check for result files
-
-write_api_results <- function(lib){
-  for(i in seq_along(lib)){
-    if(exists(paste0("adc_", lib[i]))){ # this needs work doesn't match format of "adc_plos_1"
-    eval(parse(text = paste('write.csv(adc_', lib[i], ', file = "./doi_results_', 
-                            lib[i] ,"_", Sys.Date(),'.csv")', sep = "")))
-    print(paste0(lib[i], " results saved"))
-  } else{
-    print(paste0(lib[i], " results NOT found"))
-  }
-  }
-}
-
-purrr::map(libraries, write_api_results)
+```{r}
+## Save results
+write.csv(citations_scopus, file = paste0("../output/scythe_citations_scopus_", Sys.Date(), ".csv"))
+write.csv(citations_springer, file = paste0("../output/scythe_citations_springer_", Sys.Date(), ".csv"))
+write.csv(citations_plos, file = paste0("../output/scythe_citations_plos_", Sys.Date(), ".csv"))
+write.csv(citations_xdd, file = paste0("../output/scythe_citations_xdd_", Sys.Date(), ".csv"))
 
 ```
 
