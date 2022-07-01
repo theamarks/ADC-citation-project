@@ -306,11 +306,11 @@ sum_scythe <- new_scythe_cit %>%
 sum_scythe
 ```
 
-Pretty cool! We have `r length(new_scythe_cit$article_id)` new citations (not currently in DataOne Metrics) found by my incomplete 2022-06-28 `scythe` run.
+Pretty cool! We have `r length(new_scythe_cit$article_id)` new citations (not currently in DataOne Metrics) found by my incomplete 2022-06-28 `scythe` run. Does include duplicates across sources. 
 
 #### 5) Calculate citation source overlap/coverage
 
-```{r citation_source_overlap}
+```{r citation_source_overlap, eval=F}
 
 sources <- list(scopus, plos, xdd) # way to set this at beginning genarically if we add more sources?
 citation_overlap <- data.frame()
