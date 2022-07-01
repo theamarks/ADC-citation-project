@@ -1,7 +1,7 @@
 ---
 title: "Arctic Data Center Dataset Citation Analysis"
 author: "Althea Marks"
-date: '2022-05-24'
+date: "`r Sys.Date()`"
 output: 
   html_document:
     theme: spacelab
@@ -10,6 +10,20 @@ output:
 
 ### Purpose: 
 Run ADC DOIs through `scythe` & compare to known DataONE metrics citations. Known ADC citations have mixed origins including DataCite, pervious `scythe` runs, and mannual additions via the ADC UI. 
+
+### Questions: 
+
+1) Does the addition of xDD search methods and digital library to the Scythe package improve the quality and scope of citations in the ADC?
+2) Does increasing the number of sources we are searching result in more complete coverage (quality)?
+- Overlap in citation among sources
+- Species rarification curve inspired - start to get to a point where we can estimate the actual amount of citation out there. Dataset citations are rare enough the technique may not be applicable. 
+3) Does the prevalence of data citations differ among disciplines (enviro vs SS)?
+- Use ADC dicipline classifications
+- Dataset citations are rare, N of classifications varies widely, need to control for sampling biases
+https://zenodo.org/record/4730857#.YoaQ2WDMKrM
+4) Total number of citations is extremely useful. Ground truth analysis - for a small number of datasets manually search through literature for citations. 
+5) Do usage metrics (downloads and views) correlate well with citation metrics?
+
 
 ### Methods Overview:
 
@@ -22,8 +36,7 @@ Run ADC DOIs through `scythe` & compare to known DataONE metrics citations. Know
 ### Setup
 
 ```{r setup, include=F}
-knitr::opts_chunk$set(comment = "#>", echo = T, fig.width = 6
-)
+knitr::opts_chunk$set(echo = T)
 ```
 
 
@@ -304,9 +317,11 @@ sum_scythe <- new_scythe_cit %>%
   summarise("new_citations" = n())
 
 sum_scythe
+
+new_cit <- unique(new_scythe_cit[,c(1,3)])
 ```
 
-Pretty cool! We have `r length(new_scythe_cit$article_id)` new citations (not currently in DataOne Metrics) found by my incomplete 2022-06-28 `scythe` run. Does include duplicates across sources. 
+Pretty cool! We have `r nrow(new_cit)` unique citations (not currently in DataOne Metrics) found by my incomplete 2022-06-28 `scythe` run.
 
 #### 5) Calculate citation source overlap/coverage
 
