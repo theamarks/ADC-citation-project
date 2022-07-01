@@ -20,8 +20,13 @@ Run ADC DOIs through `scythe` & compare to known DataONE metrics citations. Know
 
 ### Setup
 
-```{r setup, message=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r setup, include=F}
+knitr::opts_chunk$set(comment = "#>", echo = T, fig.width = 6
+)
+```
+
+
+```{r package_library, message=FALSE}
 
 library(jsonlite)
 library(tidyr)
@@ -30,9 +35,7 @@ library(dataone)
 library(job)
 library(magrittr)
 library(readr)
-#library(scythe)
-#library(purrr)
-
+# library(scythe) # published version of package
 
 # install development version of scythe package with added xdd library
 devtools::install_github("dataoneorg/scythe@develop")
@@ -101,7 +104,7 @@ metrics_citations <- function(from = as.POSIXct("2010-01-01"), to = as.POSIXct(S
 ```
 
 
-```{r adc_citations}
+```{r adc_citations, cache=TRUE}
 # Run ADC API Get call, unnest target_id results to individual columns
 dataone_cit <- metrics_citations()
 
@@ -116,7 +119,7 @@ dataone_cit <- tidyr::unnest(dataone_cit,
 
 DataOne metrics API can only provide data package DOIs with citations, and can not provide a comprehensive list of all data package DOIs contained within the ADC. To search through all the repository metadata we query the DataONE search index (Apache SOLR search engine). SOLR is the same underlying mechanism that DataONE uses in the online tool and can create complex logical query conditions.
 
-```{r SOLR_query}
+```{r SOLR_query, cache=TRUE}
 # complete list of searchable values
 #getQueryEngineDescription(cn, "solr")
 
@@ -274,7 +277,7 @@ write.csv(citations_xdd, file = paste0("../output/scythe_xdd_", Sys.Date(), ".cs
 
 #### 4. Compare `scythe` results to DataOne Metrics citations
 
-```{r}
+```{r new_scythe_citations, message=FALSE}
 # DataOne Metrics Documentation - https://app.swaggerhub.com/apis/nenuji/data-metrics/1.0.0.3 
 # source_id = 'Unique identifier to the source dataset / document / article that cited the target dataset '
 # target_id = 'Unique identifier to the target DATAONE dataset. This is the dataset that was cited.'
@@ -302,7 +305,13 @@ sum_scythe <- new_scythe_cit %>%
 sum_scythe
 ```
 
-Pretty cool! We have `r length(new_scythe_cit$article_id)` new citations (not currently in DataOne Metrics) found by my incomplete `scythe` run.
+Pretty cool! We have `r length(new_scythe_cit$article_id)` new citations (not currently in DataOne Metrics) found by my incomplete 2022-06-28 `scythe` run.
+
+
+
+### Next Steps:
+
+- Analysis by discipline
 
 [Root of ADC discipline semantics annotations](https://bioportal.bioontology.org/ontologies/ADCAD/?p=classes&conceptid=root) Classes/ID is where to look for query specifics.
 "Here’s an example SOLR query that looks for two of those disciplines: `https://cn.dataone.org/cn/v2/query/solr/?q=sem_annotation:*ADCAD_00077+OR+sem_annotation:*ADCAD_00005&fl=identifier,formatId,sem_annotation`" - Matt 
