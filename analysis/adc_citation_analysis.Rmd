@@ -17,6 +17,7 @@ Run ADC DOIs through `scythe` & compare to known DataONE metrics citations. Know
 2) Get a list of all ADC dataset DOIs
 3) Run all ADC dataset DOIs through `scythe` libraries
 4) Compare citations from `scythe` to DataONE metrics
+5) Calculate citation source overlap
 
 ### Setup
 
@@ -294,7 +295,7 @@ xdd <- read_csv("../output/scythe_xdd_2022-06-30.csv")
 
 scythe_cit <- rbind(scopus, springer, plos, xdd)
 
-# only show citations found by scythe that do not already apprear in the DataOne Metrics service
+# only show citations found by scythe that do not already appear in the DataOne Metrics service
 new_scythe_cit <- anti_join(scythe_cit, dataone_met_cit, by = c("article_id", "dataset_id")) %>% 
   na.omit()
 
@@ -307,6 +308,30 @@ sum_scythe
 
 Pretty cool! We have `r length(new_scythe_cit$article_id)` new citations (not currently in DataOne Metrics) found by my incomplete 2022-06-28 `scythe` run.
 
+#### 5) Calculate citation source overlap/coverage
+
+```{r citation_source_overlap}
+
+sources <- list(scopus, plos, xdd) # way to set this at beginning genarically if we add more sources?
+citation_overlap <- data.frame()
+
+match_source_citations <- function(source_1, source_2){
+  x <- plyr::match_df(source_1, source_2, on = c("article_id", "dataset_id")) %>% 
+    dplyr::mutate(matching_source = source_2$source[[1]])
+  return(x)
+}
+
+for (i in 1:length(sources)){
+  if(i < length(sources)){
+    match <- match_source_citations(sources[i], sources[i+1])
+  } 
+  citation_overlap <- rbind(citation_overlap, match)
+}
+
+purrr::map_dfr()
+  
+test <- plyr::match_df(scopus, xdd, on = c("article_id", "dataset_id"))
+```
 
 
 ### Next Steps:
