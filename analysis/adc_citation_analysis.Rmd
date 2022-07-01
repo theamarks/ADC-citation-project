@@ -20,7 +20,7 @@ Run ADC DOIs through `scythe` & compare to known DataONE metrics citations. Know
 
 ### Setup
 
-```{r setup}
+```{r setup, message=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
 library(jsonlite)
@@ -29,6 +29,7 @@ library(dplyr)
 library(dataone)
 library(job)
 library(magrittr)
+library(readr)
 #library(scythe)
 #library(purrr)
 
@@ -282,13 +283,23 @@ dataone_met_cit <- dataone_cit %>%
          "dataset_id" = target_id) %>% 
   select(article_id, dataset_id)
 
-# Combine all scythe results from all sources (this will be cleaner eventually)
+# Combine all scythe results from all sources (this will be cleaner eventually, like this for the sake of running)
+scopus <- read_csv("../output/scythe_scopus_2022-06-30.csv")
+springer <- read_csv("../output/scythe_springer_2022-06-30.csv")
+plos <- read_csv("../output/scythe_plos_2022-06-30.csv")
+xdd <- read_csv("../output/scythe_xdd_2022-06-30.csv")
 
-scythe_cit <- rbind(citations_scopus, citations_springer, citations_plos, citations_xdd)
+scythe_cit <- rbind(scopus, springer, plos, xdd)
 
 # only show citations found by scythe that do not already apprear in the DataOne Metrics service
 new_scythe_cit <- anti_join(scythe_cit, dataone_met_cit, by = c("article_id", "dataset_id")) %>% 
   na.omit()
+
+sum_scythe <- new_scythe_cit %>% 
+  group_by(source) %>% 
+  summarise("new_citations" = n())
+
+sum_scythe
 ```
 
 Pretty cool! We have `r length(new_scythe_cit$article_id)` new citations (not currently in DataOne Metrics) found by my incomplete `scythe` run.
