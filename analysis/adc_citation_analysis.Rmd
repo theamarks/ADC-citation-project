@@ -43,7 +43,6 @@ knitr::opts_chunk$set(echo = T)
 ```{r directories, message=F}
 output_directory <- "../output"
 error_directory <- "../errors"
-data_directory <- "../data"
 
 ```
 
@@ -294,10 +293,10 @@ job::job({
 
 ```{r save_scythe_results, eval=FALSE}
 ## Save results
-write.csv(citations_scopus, file = paste0("../output/scythe_scopus_", Sys.Date(), ".csv"), row.names = F)
-write.csv(citations_springer, file = paste0("../output/scythe_springer_", Sys.Date(), ".csv"), row.names = F)
-write.csv(citations_plos, file = paste0("../output/scythe_plos_", Sys.Date(), ".csv"), row.names = F)
-write.csv(citations_xdd, file = paste0("../output/scythe_xdd_", Sys.Date(), ".csv"), row.names = F)
+write.csv(citations_scopus, file.path(output_directory, paste0("scythe_scopus_", Sys.Date(), ".csv"), row.names = F)
+write.csv(citations_springer, file.path(output_directory, paste0("scythe_springer_", Sys.Date(), ".csv"), row.names = F)
+write.csv(citations_plos, file.path(output_directory, paste0("scythe_plos_", Sys.Date(), ".csv"), row.names = F)
+write.csv(citations_xdd, file.path(output_directory, paste0("scythe_xdd_", Sys.Date(), ".csv"), row.names = F)
 
 ```
 
