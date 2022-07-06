@@ -234,13 +234,14 @@ job::job({
     # access API keys within background job environment
     keyring::keyring_unlock("scythe", key)
     # suppress errors and continue loop iteration
-    result <- tryCatch(citation <- scythe::citation_search(adc_all_dois[i], "springer"),
+    result <- tryCatch(citation <- scythe::citation_search(adc_all_dois[i], "scopus"),
                        error = function(err) {
-                         print(err)
+                         writeLines(paste("Errored on", "adc_all_dois[i]", "with error:", err), 
+                                    file.path(error_directory, paste0(adc_all_dois[i], ".txt")))
                          data.frame("article_id" = NA,
                                     "article_title" = NA,
                                     "dataset_id" = adc_all_dois[i],
-                                    "source" = "springer")
+                                    "source" = "scopus")
                          }
                        )
     citations_springer <- rbind(citations_springer, result)
@@ -255,13 +256,14 @@ job::job({
     # access API keys within background job environment
     keyring::keyring_unlock("scythe", key)
     # suppress errors and continue loop iteration
-    result <- tryCatch(citation <- scythe::citation_search(adc_all_dois[i], "plos"),
+    result <- tryCatch(citation <- scythe::citation_search(adc_all_dois[i], "scopus"),
                        error = function(err) {
-                         print(err)
+                         writeLines(paste("Errored on", "adc_all_dois[i]", "with error:", err), 
+                                    file.path(error_directory, paste0(adc_all_dois[i], ".txt")))
                          data.frame("article_id" = NA,
                                     "article_title" = NA,
                                     "dataset_id" = adc_all_dois[i],
-                                    "source" = "plos")
+                                    "source" = "scopus")
                          }
                        )
     citations_plos <- rbind(citations_plos, result)
@@ -277,13 +279,14 @@ job::job({
     # access API keys within background job environment
     keyring::keyring_unlock("scythe", key)
     # suppress errors and continue loop iteration
-    result <- tryCatch(citation <- scythe::citation_search(adc_all_dois[i], "xdd"),
+    result <- tryCatch(citation <- scythe::citation_search(adc_all_dois[i], "scopus"),
                        error = function(err) {
-                         print(err)
+                         writeLines(paste("Errored on", "adc_all_dois[i]", "with error:", err), 
+                                    file.path(error_directory, paste0(adc_all_dois[i], ".txt")))
                          data.frame("article_id" = NA,
                                     "article_title" = NA,
                                     "dataset_id" = adc_all_dois[i],
-                                    "source" = "xdd")
+                                    "source" = "scopus")
                          }
                        )
     citations_xdd <- rbind(citations_xdd, result)
@@ -292,11 +295,14 @@ job::job({
 ```
 
 ```{r save_scythe_results, eval=FALSE}
-## Save results
+## Save results as .csvs to project output folder
 write.csv(citations_scopus, file.path(output_directory, paste0("scythe_scopus_", Sys.Date(), ".csv"), row.names = F)
 write.csv(citations_springer, file.path(output_directory, paste0("scythe_springer_", Sys.Date(), ".csv"), row.names = F)
 write.csv(citations_plos, file.path(output_directory, paste0("scythe_plos_", Sys.Date(), ".csv"), row.names = F)
 write.csv(citations_xdd, file.path(output_directory, paste0("scythe_xdd_", Sys.Date(), ".csv"), row.names = F)
+
+# Write results in .json format for easy upload to DataOne Metrics Database - need to remove duplicate citations first
+scythe::write_citation_pairs(citations_scopus, file.path(output_directory, paste0("")))
 
 ```
 
