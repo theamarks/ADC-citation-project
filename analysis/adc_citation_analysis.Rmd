@@ -204,9 +204,13 @@ Run each library search in parallel in separate background jobs to keep console 
 
 #key <- "password"
 
-# Scopus
+# Set up empty results data.frames
 citations_scopus <- data.frame()
+citations_springer <- data.frame()
+citations_plos <- data.frame()
+citations_xdd <- data.frame()
 
+######### Scopus
 job::job({
   for (i in seq_along(adc_all_dois)) {
     # access API keys within background job environment
@@ -226,31 +230,37 @@ job::job({
   }
 }, title = paste0("scopus citation search ", Sys.time()))
 
-# Springer
-citations_springer <- data.frame()
+######### Springer
+
+# divide ADC corpus into chunks less than Springer's 5,000/day request limit
+springer_limit <- 4995
+adc_doi_chunks <- split(adc_all_dois, ceiling(seq_along(adc_all_dois) / springer_limit))
+
+# create x number of objects containing chunks < 4995 DOIs (based on total number of DOIs)
+for (i in 1:length(adc_doi_chunks)) {
+  assign(paste0("adc_doi_chunk_", names(adc_doi_chunks)[i]), adc_doi_chunks[[i]]) 
+}
 
 job::job({
-  for (i in seq_along(adc_all_dois)) {
+  for (i in seq_along(adc_all_dois[1:4975])) { 
     # access API keys within background job environment
     keyring::keyring_unlock("scythe", key)
     # suppress errors and continue loop iteration
-    result <- tryCatch(citation <- scythe::citation_search(adc_all_dois[i], "scopus"),
+    result <- tryCatch(citation <- scythe::citation_search(adc_all_dois[1:4975][i], "scopus"),
                        error = function(err) {
-                         writeLines(paste("Errored on", "adc_all_dois[i]", "with error:", err), 
-                                    file.path(error_directory, paste0(adc_all_dois[i], ".txt")))
+                         writeLines(paste("Errored on", "adc_all_dois[1:4975][i]", "with error:", err), 
+                                    file.path(error_directory, paste0(adc_all_dois[1:4975][i], ".txt")))
                          data.frame("article_id" = NA,
                                     "article_title" = NA,
-                                    "dataset_id" = adc_all_dois[i],
+                                    "dataset_id" = adc_all_dois[1:4975][i],
                                     "source" = "scopus")
                          }
                        )
     citations_springer <- rbind(citations_springer, result)
     }
-}, title = paste0("springer citation search ", Sys.time()))
+}, title = paste0("springer citation search 1/2", Sys.time()))
 
-# plos
-citations_plos <- data.frame()
-
+######### plos
 job::job({
   for (i in seq_along(adc_all_dois)) {
     # access API keys within background job environment
@@ -271,9 +281,7 @@ job::job({
 }, title = paste0("plos citation search ", Sys.time()))
 
 
-# xdd
-citations_xdd <- data.frame()
-
+########## xdd
 job::job({
   for (i in seq_along(adc_all_dois)) {
     # access API keys within background job environment
@@ -293,6 +301,10 @@ job::job({
     }
 }, title = paste0("xdd citation search ", Sys.time()))
 ```
+```{r second_springer_search}
+
+```
+
 
 ```{r save_scythe_results, eval=FALSE}
 ## Save results as .csvs to project output folder
