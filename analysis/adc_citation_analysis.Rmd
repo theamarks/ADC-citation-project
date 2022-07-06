@@ -42,7 +42,7 @@ knitr::opts_chunk$set(echo = T)
 
 ```{r directories, message=F}
 output_directory <- "../output"
-error_directory <- "../errors"
+error_directory <- "./errors"
 
 ```
 
@@ -210,6 +210,7 @@ citations_springer <- data.frame()
 citations_plos <- data.frame()
 citations_xdd <- data.frame()
 
+
 ######### Scopus
 job::job({
   for (i in seq_along(adc_all_dois)) {
@@ -241,18 +242,19 @@ for (i in 1:length(adc_doi_chunks)) {
   assign(paste0("adc_doi_chunk_", names(adc_doi_chunks)[i]), adc_doi_chunks[[i]]) 
 }
 
+### Need to add in pause or wait function within for loop - how long can we extend this? 3 days too long?
 job::job({
-  for (i in seq_along(adc_all_dois[1:4975])) { 
+  for (i in seq_along(adc_doi_chunk_1)) { 
     # access API keys within background job environment
     keyring::keyring_unlock("scythe", key)
     # suppress errors and continue loop iteration
-    result <- tryCatch(citation <- scythe::citation_search(adc_all_dois[1:4975][i], "scopus"),
+    result <- tryCatch(citation <- scythe::citation_search(adc_doi_chunk_1[i], "scopus"),
                        error = function(err) {
-                         writeLines(paste("Errored on", "adc_all_dois[1:4975][i]", "with error:", err), 
-                                    file.path(error_directory, paste0(adc_all_dois[1:4975][i], ".txt")))
+                         writeLines(paste("Errored on", "adc_doi_chunk_1[i]", "with error:", err), 
+                                    file.path(error_directory, paste0(adc_doi_chunk_1[i], ".txt")))
                          data.frame("article_id" = NA,
                                     "article_title" = NA,
-                                    "dataset_id" = adc_all_dois[1:4975][i],
+                                    "dataset_id" = adc_doi_chunk_1[i],
                                     "source" = "scopus")
                          }
                        )
