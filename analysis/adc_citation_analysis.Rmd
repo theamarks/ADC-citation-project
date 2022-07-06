@@ -41,9 +41,9 @@ knitr::opts_chunk$set(echo = T)
 ```
 
 ```{r directories, message=F}
-output_dir <- file.path("../output")
-error_dir <- file.path("../errors")
-data_dir <- file.path("../data")
+output_directory <- "../output"
+error_directory <- "../errors"
+data_directory <- "../data"
 
 ```
 
@@ -133,6 +133,9 @@ dataone_cit <- tidyr::unnest(dataone_cit,
                           cols = c(target_id, source_id, source_url,
                                    link_publication_date, origin, title,
                                    publisher, journal, volume, page, year_of_publishing))
+
+write_csv(dataone_cit, file.path(output_directory,
+                                 paste0("dataone_metrics_cit_", Sys.Date(),".csv")))
 
 ```
 
