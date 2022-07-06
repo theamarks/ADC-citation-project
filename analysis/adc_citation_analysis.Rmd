@@ -37,8 +37,15 @@ https://zenodo.org/record/4730857#.YoaQ2WDMKrM
 
 ```{r setup, include=F}
 knitr::opts_chunk$set(echo = T)
+
 ```
 
+```{r directories, message=F}
+output_dir <- file.path("../output")
+error_dir <- file.path("../errors")
+data_dir <- file.path("../data")
+
+```
 
 ```{r package_library, message=FALSE}
 
@@ -197,6 +204,7 @@ Run each library search in parallel in separate background jobs to keep console 
 # Scopus
 citations_scopus <- data.frame()
 
+
 job::job({
   for (i in seq_along(adc_all_dois)) {
     # access API keys within background job environment
@@ -204,7 +212,8 @@ job::job({
     # suppress errors and continue loop iteration
     result <- tryCatch(citation <- scythe::citation_search(adc_all_dois[i], "scopus"),
                        error = function(err) {
-                         print(err)
+                         writeLines(paste("Errored on", "adc_all_dois[i]", "with error:", err), 
+                                    file.path("errors", paste0(adc_all_dois[i], ".txt")))
                          data.frame("article_id" = NA,
                                     "article_title" = NA,
                                     "dataset_id" = adc_all_dois[i],
