@@ -163,7 +163,8 @@ queryParamList <- list(q="id:doi*",
 # send query to Solr, return results as dataframe
 solr_adc_result <- dataone::query(mn, solrQuery=queryParamList, as="data.frame", parse=FALSE)
 
-#write.csv(citations_scopus, file = paste0("../output/solr_adc_", Sys.Date(), ".csv"))
+write.csv(solr_adc_result, file.path(output_directory, 
+                                     paste0("solr_adc_", Sys.Date(), ".csv")))
 ```
 
 #### 3. Run all ADC dataset DOIs through `scythe` libraries
@@ -176,22 +177,22 @@ adc_all_dois <- c(solr_adc_result$id)
 APIs can have request rate limits. These specific rates are often found in the API documentation or the API response headers. If request rate limits are exceeded API queries will fail.
 
 ```{r get_API_rate_limits, eval=FALSE}
-# Get rate limit information from scopus
-
+# Scopus request Limits
 key <- scythe::scythe_get_key("scopus")
 url <- paste0("https://api.elsevier.com/content/search/scopus?query=ALL:",
   "10.18739/A2M32N95V",
   paste("&APIKey=", key, sep = ""))
 
 curlGetHeaders(url)
-# shows 
+# [15:17] shows "X-RateLimit-Limit:", "X-RateLimit-Remaining:", and "X-RateLimit-Reset:" (Unix epoch is the number of seconds that have elapsed since January 1, 1970 at midnight UTC time minus the leap seconds)
 
-# springer limits
+# Springer request Limits
 # 300 calls/min and 5000/day
+# not found in response header, received email from springer that I was exceeding their rates above
 
-key_spring <- scythe::scythe_get_key("springer")
-url_spring <- paste0("http://api.springernature.com/meta/v2/json?q=doi:10.1007/BF00627098&api_key=", key_spring)
-curlGetHeaders(url_spring)
+#key_spring <- scythe::scythe_get_key("springer")
+#url_spring <- paste0("http://api.springernature.com/meta/v2/json?q=doi:10.1007/BF00627098&api_key=", key_spring)
+#curlGetHeaders(url_spring)
 ```
 
 Run each library search in parallel in separate background jobs to keep console available to work with. By default the `job::job()` imports the global environment into the background job.
@@ -207,7 +208,6 @@ Run each library search in parallel in separate background jobs to keep console 
 # Scopus
 citations_scopus <- data.frame()
 
-
 job::job({
   for (i in seq_along(adc_all_dois)) {
     # access API keys within background job environment
@@ -216,7 +216,7 @@ job::job({
     result <- tryCatch(citation <- scythe::citation_search(adc_all_dois[i], "scopus"),
                        error = function(err) {
                          writeLines(paste("Errored on", "adc_all_dois[i]", "with error:", err), 
-                                    file.path("errors", paste0(adc_all_dois[i], ".txt")))
+                                    file.path(error_directory, paste0(adc_all_dois[i], ".txt")))
                          data.frame("article_id" = NA,
                                     "article_title" = NA,
                                     "dataset_id" = adc_all_dois[i],
