@@ -248,14 +248,14 @@ job::job({
     # access API keys within background job environment
     keyring::keyring_unlock("scythe", key)
     # suppress errors and continue loop iteration
-    result <- tryCatch(citation <- scythe::citation_search(adc_doi_chunk_1[i], "scopus"),
+    result <- tryCatch(citation <- scythe::citation_search(adc_doi_chunk_1[i], "springer"),
                        error = function(err) {
                          writeLines(paste("Errored on", "adc_doi_chunk_1[i]", "with error:", err), 
                                     file.path(error_directory, paste0(adc_doi_chunk_1[i], ".txt")))
                          data.frame("article_id" = NA,
                                     "article_title" = NA,
                                     "dataset_id" = adc_doi_chunk_1[i],
-                                    "source" = "scopus")
+                                    "source" = "springer")
                          }
                        )
     citations_springer <- rbind(citations_springer, result)
@@ -268,14 +268,14 @@ job::job({
     # access API keys within background job environment
     keyring::keyring_unlock("scythe", key)
     # suppress errors and continue loop iteration
-    result <- tryCatch(citation <- scythe::citation_search(adc_all_dois[i], "scopus"),
+    result <- tryCatch(citation <- scythe::citation_search(adc_all_dois[i], "plos"),
                        error = function(err) {
                          writeLines(paste("Errored on", "adc_all_dois[i]", "with error:", err), 
                                     file.path(error_directory, paste0(adc_all_dois[i], ".txt")))
                          data.frame("article_id" = NA,
                                     "article_title" = NA,
                                     "dataset_id" = adc_all_dois[i],
-                                    "source" = "scopus")
+                                    "source" = "plos")
                          }
                        )
     citations_plos <- rbind(citations_plos, result)
@@ -296,7 +296,7 @@ job::job({
                          data.frame("article_id" = NA,
                                     "article_title" = NA,
                                     "dataset_id" = adc_all_dois[i],
-                                    "source" = "scopus")
+                                    "source" = "xdd")
                          }
                        )
     citations_xdd <- rbind(citations_xdd, result)
