@@ -289,7 +289,7 @@ job::job({
     # access API keys within background job environment
     keyring::keyring_unlock("scythe", key)
     # suppress errors and continue loop iteration
-    result <- tryCatch(citation <- scythe::citation_search(adc_all_dois[i], "scopus"),
+    result <- tryCatch(citation <- scythe::citation_search(adc_all_dois[i], "xdd"),
                        error = function(err) {
                          writeLines(paste("Errored on", "adc_all_dois[i]", "with error:", err), 
                                     file.path(error_directory, paste0(adc_all_dois[i], ".txt")))
