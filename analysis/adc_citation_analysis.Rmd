@@ -7,31 +7,33 @@ output:
     theme: spacelab
 ---
 
+### Purpose:
 
-### Purpose: 
-Run ADC DOIs through `scythe` & compare to known DataONE metrics citations. Known ADC citations have mixed origins including DataCite, pervious `scythe` runs, and mannual additions via the ADC UI. 
+Run ADC DOIs through `scythe` & compare to known DataONE metrics citations. Known ADC citations have mixed origins including DataCite, pervious `scythe` runs, and mannual additions via the ADC UI.
 
-### Questions: 
+### Questions:
 
-1) Does the addition of xDD search methods and digital library to the Scythe package improve the quality and scope of citations in the ADC?
-2) Does increasing the number of sources we are searching result in more complete coverage (quality)?
-- Overlap in citation among sources
-- Species rarification curve inspired - start to get to a point where we can estimate the actual amount of citation out there. Dataset citations are rare enough the technique may not be applicable. 
-3) Does the prevalence of data citations differ among disciplines (enviro vs SS)?
-- Use ADC dicipline classifications
-- Dataset citations are rare, N of classifications varies widely, need to control for sampling biases
-https://zenodo.org/record/4730857#.YoaQ2WDMKrM
-4) Total number of citations is extremely useful. Ground truth analysis - for a small number of datasets manually search through literature for citations. 
-5) Do usage metrics (downloads and views) correlate well with citation metrics?
+1)  Does the addition of xDD search methods and digital library to the Scythe package improve the quality and scope of citations in the ADC?
+2)  Does increasing the number of sources we are searching result in more complete coverage (quality)?
 
+-   Overlap in citation among sources
+-   Species rarification curve inspired - start to get to a point where we can estimate the actual amount of citation out there. Dataset citations are rare enough the technique may not be applicable.
+
+3)  Does the prevalence of data citations differ among disciplines (enviro vs SS)?
+
+-   Use ADC dicipline classifications
+-   Dataset citations are rare, N of classifications varies widely, need to control for sampling biases <https://zenodo.org/record/4730857#.YoaQ2WDMKrM>
+
+4)  Total number of citations is extremely useful. Ground truth analysis - for a small number of datasets manually search through literature for citations.
+5)  Do usage metrics (downloads and views) correlate well with citation metrics?
 
 ### Methods Overview:
 
-1) Gather existing/known ADC dataset citations picked up by the automated DataONE metrics API
-2) Get a list of all ADC dataset DOIs
-3) Run all ADC dataset DOIs through `scythe` libraries
-4) Compare citations from `scythe` to DataONE metrics
-5) Calculate citation source overlap
+1)  Gather existing/known ADC dataset citations picked up by the automated DataONE metrics API
+2)  Get a list of all ADC dataset DOIs
+3)  Run all ADC dataset DOIs through `scythe` libraries
+4)  Compare citations from `scythe` to DataONE metrics
+5)  Calculate citation source overlap
 
 ### Setup
 
@@ -65,7 +67,7 @@ devtools::install_github("dataoneorg/scythe@develop")
 
 #### 1. Retrieve all ADC citations with GET API request with the following request body
 
-metrics service production endpoint: https://logproc-stage-ucsb-1.test.dataone.org/metrics
+metrics service production endpoint: <https://logproc-stage-ucsb-1.test.dataone.org/metrics>
 
 ```{r get_request_citations, eval=FALSE}
 {
@@ -122,7 +124,6 @@ metrics_citations <- function(from = as.POSIXct("2010-01-01"), to = as.POSIXct(S
     return(output_df)
 }
 ```
-
 
 ```{r adc_citations, cache=TRUE}
 # Run ADC API Get call, unnest target_id results to individual columns
@@ -256,18 +257,18 @@ job::job({
     # suppress errors and continue loop iteration
     result <- tryCatch(citation <- scythe::citation_search(doi_chunk[i], "springer"),
                        error = function(err) {
-                         writeLines(paste("Errored on", "doi_chunk[i]", "with error:", err), 
-                                    file.path(error_directory, paste0(doi_chunk[i], ".txt")))
                          data.frame("article_id" = NA,
                                     "article_title" = NA,
                                     "dataset_id" = doi_chunk[i],
-                                    "source" = "springer")
+                                    "source" = "springer",
+                                    "error" = err)
                          }
                        )
     citations_springer <- rbind(citations_springer, result)
     }
+    
   }
-}, title = paste0("springer citation search 1/2", Sys.time())
+}, title = paste0("springer citation search", Sys.time())
 )
 
   
@@ -313,10 +314,10 @@ job::job({
     }
 }, title = paste0("xdd citation search ", Sys.time()))
 ```
+
 ```{r second_springer_search}
 
 ```
-
 
 ```{r save_scythe_results, eval=FALSE}
 ## Save results as .csvs to project output folder
@@ -389,11 +390,8 @@ purrr::map_dfr()
 test <- plyr::match_df(scopus, xdd, on = c("article_id", "dataset_id"))
 ```
 
-
 ### Next Steps:
 
-- Analysis by discipline
+-   Analysis by discipline
 
-[Root of ADC discipline semantics annotations](https://bioportal.bioontology.org/ontologies/ADCAD/?p=classes&conceptid=root) Classes/ID is where to look for query specifics.
-"Here’s an example SOLR query that looks for two of those disciplines: `https://cn.dataone.org/cn/v2/query/solr/?q=sem_annotation:*ADCAD_00077+OR+sem_annotation:*ADCAD_00005&fl=identifier,formatId,sem_annotation`" - Matt 
-Need to list every single SS ID in query list, not set up to query umbrella SS ID just yet
+[Root of ADC discipline semantics annotations](https://bioportal.bioontology.org/ontologies/ADCAD/?p=classes&conceptid=root) Classes/ID is where to look for query specifics. "Here's an example SOLR query that looks for two of those disciplines: `https://cn.dataone.org/cn/v2/query/solr/?q=sem_annotation:*ADCAD_00077+OR+sem_annotation:*ADCAD_00005&fl=identifier,formatId,sem_annotation`" - Matt Need to list every single SS ID in query list, not set up to query umbrella SS ID just yet
