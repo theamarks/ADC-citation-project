@@ -246,8 +246,6 @@ for (i in 1:length(adc_doi_chunks)) {
   adc_doi_chunk_list <- c(adc_doi_chunk_list, as.name(paste0("adc_doi_chunk_", names(adc_doi_chunks)[i])))
 }
 
-
-### Need to add in pause or wait function within for loop - how long can we extend this? 3 days too long?
 job::job({
   for (j in seq_along(adc_doi_chunk_list)){
     doi_chunk <- eval(adc_doi_chunk_list[[j]]) 
@@ -266,6 +264,7 @@ job::job({
                        )
     citations_springer <- rbind(citations_springer, result)
     }
+    # Need to add sys.sleep() here to pause between chunk iterations. scythe function itself should take care of request limit 300/sec. sys.sleep() takes care of 5000/day limit
     
   }
 }, title = paste0("springer citation search", Sys.time())
