@@ -38,17 +38,17 @@ Run ADC DOIs through `scythe` & compare to known DataONE metrics citations. Know
 ### Setup
 
 ```{r setup, include=F}
-knitr::opts_chunk$set(echo = T)
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE, message = FALSE)
 
 ```
 
-```{r directories, message=F}
+```{r directories}
 output_directory <- "../output"
 error_directory <- "./errors"
 
 ```
 
-```{r package_library, message=FALSE}
+```{r package_library}
 
 library(jsonlite)
 library(tidyr)
@@ -69,7 +69,7 @@ devtools::install_github("dataoneorg/scythe@develop")
 
 metrics service production endpoint: <https://logproc-stage-ucsb-1.test.dataone.org/metrics>
 
-```{r get_request_citations, eval=FALSE}
+```{r get_request_citations}
 {
   "metricsPage":{
     "total":0,
@@ -94,7 +94,7 @@ metrics service production endpoint: <https://logproc-stage-ucsb-1.test.dataone.
 
 Example request:
 
-```{r example_request, eval=FALSE}
+```{r example_request}
 https://logproc-stage-ucsb-1.test.dataone.org/metrics?metricsRequest={%22metricsPage%22:{%22total%22:0,%22start%22:0,%22count%22:0},%22metrics%22:[%22citations%22],%22filterBy%22:[{%22filterType%22:%22repository%22,%22values%22:[%22urn:node:ARCTIC%22],%22interpretAs%22:%22list%22},{%22filterType%22:%22month%22,%22values%22:[%2201/01/2012%22,%2205/24/2022%22],%22interpretAs%22:%22range%22}],%22groupBy%22:[%22month%22]
 }
 ```
@@ -176,7 +176,7 @@ adc_all_dois <- c(solr_adc_result$id)
 
 APIs can have request rate limits. These specific rates are often found in the API documentation or the API response headers. If request rate limits are exceeded API queries will fail.
 
-```{r get_API_rate_limits, eval=FALSE}
+```{r get_API_rate_limits}
 # Scopus request Limits
 key <- scythe::scythe_get_key("scopus")
 url <- paste0("https://api.elsevier.com/content/search/scopus?query=ALL:",
@@ -199,7 +199,7 @@ Run each library search in parallel in separate background jobs to keep console 
 
 **Important Note** `scythe::scythe_set_key()` is a wrapper for the `key_ring` package. An interactive password prompt is required to access the API keys stored in `key_ring`. This *does not work* within a background job environment; your keyring needs to be temporarily unlocked with `keyring::keyring_unlock("scythe", "your password")` replace `password` with your actual keyring password. Be careful not to save, commit, or push your personal keyring password.
 
-```{r citation_searches_background_jobs, eval=FALSE}
+```{r citation_searches_background_jobs}
 
 # Run each source/library search in a separate background job. Running a for loop will return incomplete results if API query fails, which is better than loosing all progress because of a single error in a single vector call.  
 
@@ -220,8 +220,6 @@ job::job({
     # suppress errors and continue loop iteration
     result <- tryCatch(citation <- scythe::citation_search(adc_all_dois[i], "scopus"),
                        error = function(err) {
-                         writeLines(paste("Errored on", "adc_all_dois[i]", "with error:", err), 
-                                    file.path(error_directory, paste0(adc_all_dois[i], ".txt")))
                          data.frame("article_id" = NA,
                                     "article_title" = NA,
                                     "dataset_id" = adc_all_dois[i],
@@ -232,6 +230,7 @@ job::job({
     citations_scopus <- rbind(citations_scopus, result)
   }
 }, title = paste0("scopus citation search ", Sys.time()))
+
 
 ######### Springer
 
@@ -274,9 +273,8 @@ job::job({
 }, title = paste0("springer citation search", Sys.time())
 )
 
-  
 
-######### plos
+######### PLOS
 job::job({
   for (i in seq_along(adc_all_dois)) {
     # access API keys within background job environment
@@ -284,8 +282,6 @@ job::job({
     # suppress errors and continue loop iteration
     result <- tryCatch(citation <- scythe::citation_search(adc_all_dois[i], "plos"),
                        error = function(err) {
-                         writeLines(paste("Errored on", "adc_all_dois[i]", "with error:", err), 
-                                    file.path(error_directory, paste0(adc_all_dois[i], ".txt")))
                          data.frame("article_id" = NA,
                                     "article_title" = NA,
                                     "dataset_id" = adc_all_dois[i],
@@ -298,7 +294,7 @@ job::job({
 }, title = paste0("plos citation search ", Sys.time()))
 
 
-########## xdd
+########## XDD
 job::job({
   for (i in seq_along(adc_all_dois)) {
     # access API keys within background job environment
@@ -306,8 +302,6 @@ job::job({
     # suppress errors and continue loop iteration
     result <- tryCatch(citation <- scythe::citation_search(adc_all_dois[i], "xdd"),
                        error = function(err) {
-                         writeLines(paste("Errored on", "adc_all_dois[i]", "with error:", err), 
-                                    file.path(error_directory, paste0(adc_all_dois[i], ".txt")))
                          data.frame("article_id" = NA,
                                     "article_title" = NA,
                                     "dataset_id" = adc_all_dois[i],
@@ -320,11 +314,8 @@ job::job({
 }, title = paste0("xdd citation search ", Sys.time()))
 ```
 
-```{r second_springer_search}
 
-```
-
-```{r save_scythe_results, eval=FALSE}
+```{r save_scythe_results}
 ## Save results as .csvs to project output folder
 write.csv(citations_scopus, file.path(output_directory, paste0("scythe_scopus_", Sys.Date(), ".csv"), row.names = F)
 write.csv(citations_springer, file.path(output_directory, paste0("scythe_springer_", Sys.Date(), ".csv"), row.names = F)
@@ -338,7 +329,7 @@ scythe::write_citation_pairs(citations_scopus, file.path(output_directory, paste
 
 #### 4. Compare `scythe` results to DataOne Metrics citations
 
-```{r new_scythe_citations, message=FALSE}
+```{r new_scythe_citations}
 # DataOne Metrics Documentation - https://app.swaggerhub.com/apis/nenuji/data-metrics/1.0.0.3 
 # source_id = 'Unique identifier to the source dataset / document / article that cited the target dataset '
 # target_id = 'Unique identifier to the target DATAONE dataset. This is the dataset that was cited.'
@@ -368,11 +359,9 @@ sum_scythe
 new_cit <- unique(new_scythe_cit[,c(1,3)])
 ```
 
-Pretty cool! We have `r nrow(new_cit)` unique citations (not currently in DataOne Metrics) found by my incomplete 2022-06-28 `scythe` run.
-
 #### 5) Calculate citation source overlap/coverage
 
-```{r citation_source_overlap, eval=F}
+```{r citation_source_overlap}
 
 sources <- list(scopus, plos, xdd) # way to set this at beginning genarically if we add more sources?
 citation_overlap <- data.frame()
