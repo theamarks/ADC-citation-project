@@ -236,11 +236,15 @@ job::job({
 # divide ADC corpus into chunks less than Springer's 5,000/day request limit
 springer_limit <- 4995
 adc_doi_chunks <- split(adc_all_dois, ceiling(seq_along(adc_all_dois) / springer_limit))
+adc_doi_chunk_vec <- vector()
 
 # create x number of objects containing chunks < 4995 DOIs (based on total number of DOIs)
 for (i in 1:length(adc_doi_chunks)) {
   assign(paste0("adc_doi_chunk_", names(adc_doi_chunks)[i]), adc_doi_chunks[[i]]) 
+  adc_doi_chunk_vec <- c(adc_doi_chunk_vec, paste0("adc_doi_chunk_", names(adc_doi_chunks)[i]))
 }
+
+
 
 ### Need to add in pause or wait function within for loop - how long can we extend this? 3 days too long?
 job::job({
