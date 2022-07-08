@@ -225,7 +225,8 @@ job::job({
                          data.frame("article_id" = NA,
                                     "article_title" = NA,
                                     "dataset_id" = adc_all_dois[i],
-                                    "source" = "scopus")
+                                    "source" = "scopus",
+                                    "error" = err)
                          }
                        )
     citations_scopus <- rbind(citations_scopus, result)
@@ -239,7 +240,7 @@ springer_limit <- 4995
 adc_doi_chunks <- split(adc_all_dois, ceiling(seq_along(adc_all_dois) / springer_limit))
 adc_doi_chunk_list <- list() # empty list to hold hold chunk names
 
-# create x number of objects containing chunks < 4995 DOIs (based on total number of DOIs)
+# create x number of objects containing chunks < 5000 DOIs (based on total number of DOIs)
 # And create list of doi chunk names to reference in search for loop
 for (i in 1:length(adc_doi_chunks)) {
   assign(paste0("adc_doi_chunk_", names(adc_doi_chunks)[i]), adc_doi_chunks[[i]]) 
@@ -266,8 +267,9 @@ job::job({
     citations_springer <- rbind(citations_springer, result)
     }
     # pause loop iteration until 24 hours (86400 seconds + 100 sec buffer) have passed
-    Sys.sleep(time - 86500)
     message(paste0("DOI chunk ", j, " of ", length(adc_doi_chunk_list), "completed."))
+    Sys.sleep(time - 86500)
+   
   }
 }, title = paste0("springer citation search", Sys.time())
 )
@@ -287,7 +289,8 @@ job::job({
                          data.frame("article_id" = NA,
                                     "article_title" = NA,
                                     "dataset_id" = adc_all_dois[i],
-                                    "source" = "plos")
+                                    "source" = "plos",
+                                    "error" = err)
                          }
                        )
     citations_plos <- rbind(citations_plos, result)
@@ -308,7 +311,8 @@ job::job({
                          data.frame("article_id" = NA,
                                     "article_title" = NA,
                                     "dataset_id" = adc_all_dois[i],
-                                    "source" = "xdd")
+                                    "source" = "xdd",
+                                    "error" = err)
                          }
                        )
     citations_xdd <- rbind(citations_xdd, result)
