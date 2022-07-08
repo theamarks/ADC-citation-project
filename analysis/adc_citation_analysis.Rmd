@@ -236,35 +236,41 @@ job::job({
 # divide ADC corpus into chunks less than Springer's 5,000/day request limit
 springer_limit <- 4995
 adc_doi_chunks <- split(adc_all_dois, ceiling(seq_along(adc_all_dois) / springer_limit))
-adc_doi_chunk_vec <- vector() # empty vector to hold hold chunk names
+adc_doi_chunk_list <- list() # empty list to hold hold chunk names
 
 # create x number of objects containing chunks < 4995 DOIs (based on total number of DOIs)
-# And create vector of doi chunk names to reference in search for loop
+# And create list of doi chunk names to reference in search for loop
 for (i in 1:length(adc_doi_chunks)) {
   assign(paste0("adc_doi_chunk_", names(adc_doi_chunks)[i]), adc_doi_chunks[[i]]) 
-  adc_doi_chunk_vec <- c(adc_doi_chunk_vec, paste0("adc_doi_chunk_", names(adc_doi_chunks)[i]))
+  adc_doi_chunk_list <- c(adc_doi_chunk_list, as.name(paste0("adc_doi_chunk_", names(adc_doi_chunks)[i])))
 }
 
 
 ### Need to add in pause or wait function within for loop - how long can we extend this? 3 days too long?
 job::job({
-  for (i in seq_along(adc_doi_chunk_1)) { 
+  for (j in seq_along(adc_doi_chunk_list)){
+    doi_chunk <- eval(adc_doi_chunk_list[[j]]) 
+    for (i in seq_along(doi_chunk){ 
     # access API keys within background job environment
     keyring::keyring_unlock("scythe", key)
     # suppress errors and continue loop iteration
-    result <- tryCatch(citation <- scythe::citation_search(adc_doi_chunk_1[i], "springer"),
+    result <- tryCatch(citation <- scythe::citation_search(doi_chunk[i], "springer"),
                        error = function(err) {
-                         writeLines(paste("Errored on", "adc_doi_chunk_1[i]", "with error:", err), 
-                                    file.path(error_directory, paste0(adc_doi_chunk_1[i], ".txt")))
+                         writeLines(paste("Errored on", "doi_chunk[i]", "with error:", err), 
+                                    file.path(error_directory, paste0(doi_chunk[i], ".txt")))
                          data.frame("article_id" = NA,
                                     "article_title" = NA,
-                                    "dataset_id" = adc_doi_chunk_1[i],
+                                    "dataset_id" = doi_chunk[i],
                                     "source" = "springer")
                          }
                        )
     citations_springer <- rbind(citations_springer, result)
     }
-}, title = paste0("springer citation search 1/2", Sys.time()))
+  }
+}, title = paste0("springer citation search 1/2", Sys.time())
+)
+
+  
 
 ######### plos
 job::job({
