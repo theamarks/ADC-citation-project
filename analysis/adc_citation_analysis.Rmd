@@ -7,40 +7,47 @@ output:
     theme: spacelab
 ---
 
+### Purpose:
 
-### Purpose: 
-Run ADC DOIs through `scythe` & compare to known DataONE metrics citations. Known ADC citations have mixed origins including DataCite, pervious `scythe` runs, and mannual additions via the ADC UI. 
+Run ADC DOIs through `scythe` & compare to known DataONE metrics citations. Known ADC citations have mixed origins including DataCite, pervious `scythe` runs, and mannual additions via the ADC UI.
 
-### Questions: 
+### Questions:
 
-1) Does the addition of xDD search methods and digital library to the Scythe package improve the quality and scope of citations in the ADC?
-2) Does increasing the number of sources we are searching result in more complete coverage (quality)?
-- Overlap in citation among sources
-- Species rarification curve inspired - start to get to a point where we can estimate the actual amount of citation out there. Dataset citations are rare enough the technique may not be applicable. 
-3) Does the prevalence of data citations differ among disciplines (enviro vs SS)?
-- Use ADC dicipline classifications
-- Dataset citations are rare, N of classifications varies widely, need to control for sampling biases
-https://zenodo.org/record/4730857#.YoaQ2WDMKrM
-4) Total number of citations is extremely useful. Ground truth analysis - for a small number of datasets manually search through literature for citations. 
-5) Do usage metrics (downloads and views) correlate well with citation metrics?
+1)  Does the addition of xDD search methods and digital library to the Scythe package improve the quality and scope of citations in the ADC?
+2)  Does increasing the number of sources we are searching result in more complete coverage (quality)?
 
+-   Overlap in citation among sources
+-   Species rarification curve inspired - start to get to a point where we can estimate the actual amount of citation out there. Dataset citations are rare enough the technique may not be applicable.
+
+3)  Does the prevalence of data citations differ among disciplines (enviro vs SS)?
+
+-   Use ADC dicipline classifications
+-   Dataset citations are rare, N of classifications varies widely, need to control for sampling biases <https://zenodo.org/record/4730857#.YoaQ2WDMKrM>
+
+4)  Total number of citations is extremely useful. Ground truth analysis - for a small number of datasets manually search through literature for citations.
+5)  Do usage metrics (downloads and views) correlate well with citation metrics?
 
 ### Methods Overview:
 
-1) Gather existing/known ADC dataset citations picked up by the automated DataONE metrics API
-2) Get a list of all ADC dataset DOIs
-3) Run all ADC dataset DOIs through `scythe` libraries
-4) Compare citations from `scythe` to DataONE metrics
-5) Calculate citation source overlap
+1)  Gather existing/known ADC dataset citations picked up by the automated DataONE metrics API
+2)  Get a list of all ADC dataset DOIs
+3)  Run all ADC dataset DOIs through `scythe` libraries
+4)  Compare citations from `scythe` to DataONE metrics
+5)  Calculate citation source overlap
 
 ### Setup
 
 ```{r setup, include=F}
-knitr::opts_chunk$set(echo = T)
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE, message = FALSE)
+
 ```
 
+```{r directories}
+output_directory <- "../output"
 
-```{r package_library, message=FALSE}
+```
+
+```{r package_library}
 
 library(jsonlite)
 library(tidyr)
@@ -59,9 +66,9 @@ devtools::install_github("dataoneorg/scythe@develop")
 
 #### 1. Retrieve all ADC citations with GET API request with the following request body
 
-metrics service production endpoint: https://logproc-stage-ucsb-1.test.dataone.org/metrics
+metrics service production endpoint: <https://logproc-stage-ucsb-1.test.dataone.org/metrics>
 
-```{r get_request_citations, eval=FALSE}
+```{r get_request_citations}
 {
   "metricsPage":{
     "total":0,
@@ -86,7 +93,7 @@ metrics service production endpoint: https://logproc-stage-ucsb-1.test.dataone.o
 
 Example request:
 
-```{r example_request, eval=FALSE}
+```{r example_request}
 https://logproc-stage-ucsb-1.test.dataone.org/metrics?metricsRequest={%22metricsPage%22:{%22total%22:0,%22start%22:0,%22count%22:0},%22metrics%22:[%22citations%22],%22filterBy%22:[{%22filterType%22:%22repository%22,%22values%22:[%22urn:node:ARCTIC%22],%22interpretAs%22:%22list%22},{%22filterType%22:%22month%22,%22values%22:[%2201/01/2012%22,%2205/24/2022%22],%22interpretAs%22:%22range%22}],%22groupBy%22:[%22month%22]
 }
 ```
@@ -117,7 +124,6 @@ metrics_citations <- function(from = as.POSIXct("2010-01-01"), to = as.POSIXct(S
 }
 ```
 
-
 ```{r adc_citations, cache=TRUE}
 # Run ADC API Get call, unnest target_id results to individual columns
 dataone_cit <- metrics_citations()
@@ -126,6 +132,9 @@ dataone_cit <- tidyr::unnest(dataone_cit,
                           cols = c(target_id, source_id, source_url,
                                    link_publication_date, origin, title,
                                    publisher, journal, volume, page, year_of_publishing))
+
+write_csv(dataone_cit, file.path(output_directory,
+                                 paste0("dataone_metrics_cit_", Sys.Date(),".csv")))
 
 ```
 
@@ -153,7 +162,8 @@ queryParamList <- list(q="id:doi*",
 # send query to Solr, return results as dataframe
 solr_adc_result <- dataone::query(mn, solrQuery=queryParamList, as="data.frame", parse=FALSE)
 
-#write.csv(citations_scopus, file = paste0("../output/solr_adc_", Sys.Date(), ".csv"))
+write.csv(solr_adc_result, file.path(output_directory, 
+                                     paste0("solr_adc_", Sys.Date(), ".csv")))
 ```
 
 #### 3. Run all ADC dataset DOIs through `scythe` libraries
@@ -165,38 +175,43 @@ adc_all_dois <- c(solr_adc_result$id)
 
 APIs can have request rate limits. These specific rates are often found in the API documentation or the API response headers. If request rate limits are exceeded API queries will fail.
 
-```{r get_API_rate_limits, eval=FALSE}
-# Get rate limit information from scopus
-
+```{r get_API_rate_limits}
+# Scopus request Limits
 key <- scythe::scythe_get_key("scopus")
 url <- paste0("https://api.elsevier.com/content/search/scopus?query=ALL:",
   "10.18739/A2M32N95V",
   paste("&APIKey=", key, sep = ""))
 
 curlGetHeaders(url)
-# shows 
+# [15:17] shows "X-RateLimit-Limit:", "X-RateLimit-Remaining:", and "X-RateLimit-Reset:" (Unix epoch is the number of seconds that have elapsed since January 1, 1970 at midnight UTC time minus the leap seconds)
 
-# springer limits
+# Springer request Limits
 # 300 calls/min and 5000/day
+# not found in response header, received email from springer that I was exceeding their rates above
 
-key_spring <- scythe::scythe_get_key("springer")
-url_spring <- paste0("http://api.springernature.com/meta/v2/json?q=doi:10.1007/BF00627098&api_key=", key_spring)
-curlGetHeaders(url_spring)
+#key_spring <- scythe::scythe_get_key("springer")
+#url_spring <- paste0("http://api.springernature.com/meta/v2/json?q=doi:10.1007/BF00627098&api_key=", key_spring)
+#curlGetHeaders(url_spring)
 ```
 
 Run each library search in parallel in separate background jobs to keep console available to work with. By default the `job::job()` imports the global environment into the background job.
 
 **Important Note** `scythe::scythe_set_key()` is a wrapper for the `key_ring` package. An interactive password prompt is required to access the API keys stored in `key_ring`. This *does not work* within a background job environment; your keyring needs to be temporarily unlocked with `keyring::keyring_unlock("scythe", "your password")` replace `password` with your actual keyring password. Be careful not to save, commit, or push your personal keyring password.
 
-```{r citation_searches_background_jobs, eval=FALSE}
+```{r citation_searches_background_jobs}
 
 # Run each source/library search in a separate background job. Running a for loop will return incomplete results if API query fails, which is better than loosing all progress because of a single error in a single vector call.  
 
 #key <- "password"
 
-# Scopus
+# Set up empty results data.frames
 citations_scopus <- data.frame()
+citations_springer <- data.frame()
+citations_plos <- data.frame()
+citations_xdd <- data.frame()
 
+
+######### Scopus
 job::job({
   for (i in seq_along(adc_all_dois)) {
     # access API keys within background job environment
@@ -204,41 +219,61 @@ job::job({
     # suppress errors and continue loop iteration
     result <- tryCatch(citation <- scythe::citation_search(adc_all_dois[i], "scopus"),
                        error = function(err) {
-                         print(err)
                          data.frame("article_id" = NA,
                                     "article_title" = NA,
                                     "dataset_id" = adc_all_dois[i],
-                                    "source" = "scopus")
+                                    "source" = "scopus",
+                                    "error" = err)
                          }
                        )
     citations_scopus <- rbind(citations_scopus, result)
   }
 }, title = paste0("scopus citation search ", Sys.time()))
 
-# Springer
-citations_springer <- data.frame()
+
+######### Springer
+
+# divide ADC corpus into chunks less than Springer's 5,000/day request limit
+springer_limit <- 4995
+adc_doi_chunks <- split(adc_all_dois, ceiling(seq_along(adc_all_dois) / springer_limit))
+adc_doi_chunk_list <- list() # empty list to hold hold chunk names
+
+# create x number of objects containing chunks < 5000 DOIs (based on total number of DOIs)
+# And create list of doi chunk names to reference in search for loop
+for (i in 1:length(adc_doi_chunks)) {
+  assign(paste0("adc_doi_chunk_", names(adc_doi_chunks)[i]), adc_doi_chunks[[i]]) 
+  adc_doi_chunk_list <- c(adc_doi_chunk_list, as.name(paste0("adc_doi_chunk_", names(adc_doi_chunks)[i])))
+}
 
 job::job({
-  for (i in seq_along(adc_all_dois)) {
+  for (j in seq_along(adc_doi_chunk_list)){
+    doi_chunk <- eval(adc_doi_chunk_list[[j]]) # simplify calling vector extracted from doi list
+    time <- Sys.time() # record time when loop iteration started
+    for (i in seq_along(doi_chunk)){ 
     # access API keys within background job environment
     keyring::keyring_unlock("scythe", key)
     # suppress errors and continue loop iteration
-    result <- tryCatch(citation <- scythe::citation_search(adc_all_dois[i], "springer"),
+    result <- tryCatch(citation <- scythe::citation_search(doi_chunk[i], "springer"),
                        error = function(err) {
-                         print(err)
                          data.frame("article_id" = NA,
                                     "article_title" = NA,
-                                    "dataset_id" = adc_all_dois[i],
-                                    "source" = "springer")
+                                    "dataset_id" = doi_chunk[i],
+                                    "source" = "springer",
+                                    "error" = err)
                          }
                        )
     citations_springer <- rbind(citations_springer, result)
     }
-}, title = paste0("springer citation search ", Sys.time()))
+    # pause loop iteration until 24 hours (86400 seconds + 100 sec buffer) have passed
+    message(paste0("DOI chunk ", j, " of ", length(adc_doi_chunk_list), "completed."))
+    Sys.sleep(time - 86500)
+   
+  }
+}, title = paste0("springer citation search", Sys.time())
+)
 
-# plos
-citations_plos <- data.frame()
 
+######### PLOS
 job::job({
   for (i in seq_along(adc_all_dois)) {
     # access API keys within background job environment
@@ -246,11 +281,11 @@ job::job({
     # suppress errors and continue loop iteration
     result <- tryCatch(citation <- scythe::citation_search(adc_all_dois[i], "plos"),
                        error = function(err) {
-                         print(err)
                          data.frame("article_id" = NA,
                                     "article_title" = NA,
                                     "dataset_id" = adc_all_dois[i],
-                                    "source" = "plos")
+                                    "source" = "plos",
+                                    "error" = err)
                          }
                        )
     citations_plos <- rbind(citations_plos, result)
@@ -258,9 +293,7 @@ job::job({
 }, title = paste0("plos citation search ", Sys.time()))
 
 
-# xdd
-citations_xdd <- data.frame()
-
+########## XDD
 job::job({
   for (i in seq_along(adc_all_dois)) {
     # access API keys within background job environment
@@ -268,11 +301,11 @@ job::job({
     # suppress errors and continue loop iteration
     result <- tryCatch(citation <- scythe::citation_search(adc_all_dois[i], "xdd"),
                        error = function(err) {
-                         print(err)
                          data.frame("article_id" = NA,
                                     "article_title" = NA,
                                     "dataset_id" = adc_all_dois[i],
-                                    "source" = "xdd")
+                                    "source" = "xdd",
+                                    "error" = err)
                          }
                        )
     citations_xdd <- rbind(citations_xdd, result)
@@ -280,18 +313,22 @@ job::job({
 }, title = paste0("xdd citation search ", Sys.time()))
 ```
 
-```{r save_scythe_results, eval=FALSE}
-## Save results
-write.csv(citations_scopus, file = paste0("../output/scythe_scopus_", Sys.Date(), ".csv"), row.names = F)
-write.csv(citations_springer, file = paste0("../output/scythe_springer_", Sys.Date(), ".csv"), row.names = F)
-write.csv(citations_plos, file = paste0("../output/scythe_plos_", Sys.Date(), ".csv"), row.names = F)
-write.csv(citations_xdd, file = paste0("../output/scythe_xdd_", Sys.Date(), ".csv"), row.names = F)
+
+```{r save_scythe_results}
+## Save results as .csvs to project output folder
+write.csv(citations_scopus, file.path(output_directory, paste0("scythe_scopus_", Sys.Date(), ".csv"), row.names = F)
+write.csv(citations_springer, file.path(output_directory, paste0("scythe_springer_", Sys.Date(), ".csv"), row.names = F)
+write.csv(citations_plos, file.path(output_directory, paste0("scythe_plos_", Sys.Date(), ".csv"), row.names = F)
+write.csv(citations_xdd, file.path(output_directory, paste0("scythe_xdd_", Sys.Date(), ".csv"), row.names = F)
+
+# Write results in .json format for easy upload to DataOne Metrics Database - need to remove duplicate citations first
+scythe::write_citation_pairs(citations_scopus, file.path(output_directory, paste0("")))
 
 ```
 
 #### 4. Compare `scythe` results to DataOne Metrics citations
 
-```{r new_scythe_citations, message=FALSE}
+```{r new_scythe_citations}
 # DataOne Metrics Documentation - https://app.swaggerhub.com/apis/nenuji/data-metrics/1.0.0.3 
 # source_id = 'Unique identifier to the source dataset / document / article that cited the target dataset '
 # target_id = 'Unique identifier to the target DATAONE dataset. This is the dataset that was cited.'
@@ -321,11 +358,9 @@ sum_scythe
 new_cit <- unique(new_scythe_cit[,c(1,3)])
 ```
 
-Pretty cool! We have `r nrow(new_cit)` unique citations (not currently in DataOne Metrics) found by my incomplete 2022-06-28 `scythe` run.
-
 #### 5) Calculate citation source overlap/coverage
 
-```{r citation_source_overlap, eval=F}
+```{r citation_source_overlap}
 
 sources <- list(scopus, plos, xdd) # way to set this at beginning genarically if we add more sources?
 citation_overlap <- data.frame()
@@ -348,11 +383,8 @@ purrr::map_dfr()
 test <- plyr::match_df(scopus, xdd, on = c("article_id", "dataset_id"))
 ```
 
-
 ### Next Steps:
 
-- Analysis by discipline
+-   Analysis by discipline
 
-[Root of ADC discipline semantics annotations](https://bioportal.bioontology.org/ontologies/ADCAD/?p=classes&conceptid=root) Classes/ID is where to look for query specifics.
-"Here’s an example SOLR query that looks for two of those disciplines: `https://cn.dataone.org/cn/v2/query/solr/?q=sem_annotation:*ADCAD_00077+OR+sem_annotation:*ADCAD_00005&fl=identifier,formatId,sem_annotation`" - Matt 
-Need to list every single SS ID in query list, not set up to query umbrella SS ID just yet
+[Root of ADC discipline semantics annotations](https://bioportal.bioontology.org/ontologies/ADCAD/?p=classes&conceptid=root) Classes/ID is where to look for query specifics. "Here's an example SOLR query that looks for two of those disciplines: `https://cn.dataone.org/cn/v2/query/solr/?q=sem_annotation:*ADCAD_00077+OR+sem_annotation:*ADCAD_00005&fl=identifier,formatId,sem_annotation`" - Matt Need to list every single SS ID in query list, not set up to query umbrella SS ID just yet
