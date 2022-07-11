@@ -1,5 +1,6 @@
 ---
 title: "Arctic Data Center Dataset Citation Analysis"
+subtitle: "Data Fellowship Project 2022"
 author: "Althea Marks"
 date: "`r Sys.Date()`"
 output: 
@@ -223,7 +224,8 @@ job::job({
                                     "article_title" = NA,
                                     "dataset_id" = adc_all_dois[i],
                                     "source" = "scopus",
-                                    "error" = err)
+                                    "error" = as.character(err),
+                                    "time" = Sys.time())
                          }
                        )
     citations_scopus <- rbind(citations_scopus, result)
@@ -238,7 +240,10 @@ springer_limit <- 4995
 length(adc_all_dois) / springer_limit
 chunk_1 <- adc_all_dois[1:springer_limit]
 chunk_2 <- adc_all_dois[springer_limit:(springer_limit*2)]
-chunk_2 <- adc_all_dois[(springer_limit*2):length(adc_all_dois)]
+chunk_3 <- adc_all_dois[(springer_limit*2):length(adc_all_dois)]
+
+# change second object to search next chunk of DOIs
+doi_chunk = chunk_3
 
 job::job({
   for (i in seq_along(doi_chunk)){ 
@@ -251,7 +256,7 @@ job::job({
                                     "article_title" = NA,
                                     "dataset_id" = doi_chunk[i],
                                     "source" = "springer",
-                                    "error" = err,
+                                    "error" = as.character(err),
                                     "time" = Sys.time())
                          }
                        )
@@ -273,7 +278,8 @@ job::job({
                                     "article_title" = NA,
                                     "dataset_id" = adc_all_dois[i],
                                     "source" = "plos",
-                                    "error" = err)
+                                    "error" = as.character(err),
+                                    "time" = Sys.time())
                          }
                        )
     citations_plos <- rbind(citations_plos, result)
@@ -293,7 +299,8 @@ job::job({
                                     "article_title" = NA,
                                     "dataset_id" = adc_all_dois[i],
                                     "source" = "xdd",
-                                    "error" = err)
+                                    "error" = as.character(err),
+                                    "time" = Sys.time())
                          }
                        )
     citations_xdd <- rbind(citations_xdd, result)
