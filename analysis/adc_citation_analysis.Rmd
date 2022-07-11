@@ -235,21 +235,13 @@ job::job({
 
 # divide ADC corpus into chunks less than Springer's 5,000/day request limit
 springer_limit <- 4995
-adc_doi_chunks <- split(adc_all_dois, ceiling(seq_along(adc_all_dois) / springer_limit))
-adc_doi_chunk_list <- list() # empty list to hold hold chunk names
-
-# create x number of objects containing chunks < 5000 DOIs (based on total number of DOIs)
-# And create list of doi chunk names to reference in search for loop
-for (i in 1:length(adc_doi_chunks)) {
-  assign(paste0("adc_doi_chunk_", names(adc_doi_chunks)[i]), adc_doi_chunks[[i]]) 
-  adc_doi_chunk_list <- c(adc_doi_chunk_list, as.name(paste0("adc_doi_chunk_", names(adc_doi_chunks)[i])))
-}
+length(adc_all_dois) / springer_limit
+chunk_1 <- adc_all_dois[1:springer_limit]
+chunk_2 <- adc_all_dois[springer_limit:(springer_limit*2)]
+chunk_2 <- adc_all_dois[(springer_limit*2):length(adc_all_dois)]
 
 job::job({
-  for (j in seq_along(adc_doi_chunk_list)){
-    doi_chunk <- eval(adc_doi_chunk_list[[j]]) # simplify calling vector extracted from doi list
-    time <- Sys.time() # record time when loop iteration started
-    for (i in seq_along(doi_chunk)){ 
+  for (i in seq_along(doi_chunk)){ 
     # access API keys within background job environment
     keyring::keyring_unlock("scythe", key)
     # suppress errors and continue loop iteration
@@ -259,16 +251,12 @@ job::job({
                                     "article_title" = NA,
                                     "dataset_id" = doi_chunk[i],
                                     "source" = "springer",
-                                    "error" = err)
+                                    "error" = err,
+                                    "time" = Sys.time())
                          }
                        )
     citations_springer <- rbind(citations_springer, result)
     }
-    # pause loop iteration until 24 hours (86400 seconds + 100 sec buffer) have passed
-    message(paste0("DOI chunk ", j, " of ", length(adc_doi_chunk_list), "completed."))
-    Sys.sleep(time - 86500)
-   
-  }
 }, title = paste0("springer citation search", Sys.time())
 )
 
