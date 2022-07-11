@@ -44,7 +44,6 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE, message = FALSE)
 
 ```{r directories}
 output_directory <- "../output"
-error_directory <- "./errors"
 
 ```
 
