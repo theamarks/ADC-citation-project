@@ -164,7 +164,7 @@ queryParamList <- list(q="id:doi*",
 solr_adc_result <- dataone::query(mn, solrQuery=queryParamList, as="data.frame", parse=FALSE)
 
 write.csv(solr_adc_result, file.path(output_directory, 
-                                     paste0("solr_adc_", Sys.Date(), ".csv")))
+                                     paste0(Sys.Date(), "_solr_adc.csv")))
 ```
 
 #### 3. Run all ADC dataset DOIs through `scythe` libraries
@@ -178,10 +178,10 @@ APIs can have request rate limits. These specific rates are often found in the A
 
 ```{r get_API_rate_limits}
 # Scopus request Limits
-key <- scythe::scythe_get_key("scopus")
+key_scopus <- scythe::scythe_get_key("scopus")
 url <- paste0("https://api.elsevier.com/content/search/scopus?query=ALL:",
   "10.18739/A2M32N95V",
-  paste("&APIKey=", key, sep = ""))
+  paste("&APIKey=", key_scopus, sep = ""))
 
 curlGetHeaders(url)
 # [15:17] shows "X-RateLimit-Limit:", "X-RateLimit-Remaining:", and "X-RateLimit-Reset:" (Unix epoch is the number of seconds that have elapsed since January 1, 1970 at midnight UTC time minus the leap seconds)
@@ -203,7 +203,7 @@ Run each library search in parallel in separate background jobs to keep console 
 
 # Run each source/library search in a separate background job. Running a for loop will return incomplete results if API query fails, which is better than loosing all progress because of a single error in a single vector call.  
 
-#key <- "password"
+key <- "password"
 
 # Set up empty results data.frames
 citations_scopus <- data.frame()
@@ -223,9 +223,7 @@ job::job({
                          data.frame("article_id" = NA,
                                     "article_title" = NA,
                                     "dataset_id" = adc_all_dois[i],
-                                    "source" = "scopus",
-                                    "error" = as.character(err),
-                                    "time" = Sys.time())
+                                    "source" = paste0("scopus ", as.character(err)))
                          }
                        )
     citations_scopus <- rbind(citations_scopus, result)
@@ -243,7 +241,7 @@ chunk_2 <- adc_all_dois[springer_limit:(springer_limit*2)]
 chunk_3 <- adc_all_dois[(springer_limit*2):length(adc_all_dois)]
 
 # change second object to search next chunk of DOIs
-doi_chunk = chunk_3
+doi_chunk = chunk_2
 
 job::job({
   for (i in seq_along(doi_chunk)){ 
@@ -255,9 +253,7 @@ job::job({
                          data.frame("article_id" = NA,
                                     "article_title" = NA,
                                     "dataset_id" = doi_chunk[i],
-                                    "source" = "springer",
-                                    "error" = as.character(err),
-                                    "time" = Sys.time())
+                                    "source" = paste0("springer ", as.character(err)))
                          }
                        )
     citations_springer <- rbind(citations_springer, result)
@@ -277,9 +273,7 @@ job::job({
                          data.frame("article_id" = NA,
                                     "article_title" = NA,
                                     "dataset_id" = adc_all_dois[i],
-                                    "source" = "plos",
-                                    "error" = as.character(err),
-                                    "time" = Sys.time())
+                                    "source" = paste0("plos", as.character(err)))
                          }
                        )
     citations_plos <- rbind(citations_plos, result)
@@ -298,9 +292,7 @@ job::job({
                          data.frame("article_id" = NA,
                                     "article_title" = NA,
                                     "dataset_id" = adc_all_dois[i],
-                                    "source" = "xdd",
-                                    "error" = as.character(err),
-                                    "time" = Sys.time())
+                                    "source" = paste0("xdd", as.character(err)))
                          }
                        )
     citations_xdd <- rbind(citations_xdd, result)
@@ -311,10 +303,10 @@ job::job({
 
 ```{r save_scythe_results}
 ## Save results as .csvs to project output folder
-write.csv(citations_scopus, file.path(output_directory, paste0("scythe_scopus_", Sys.Date(), ".csv"), row.names = F)
-write.csv(citations_springer, file.path(output_directory, paste0("scythe_springer_", Sys.Date(), ".csv"), row.names = F)
-write.csv(citations_plos, file.path(output_directory, paste0("scythe_plos_", Sys.Date(), ".csv"), row.names = F)
-write.csv(citations_xdd, file.path(output_directory, paste0("scythe_xdd_", Sys.Date(), ".csv"), row.names = F)
+write.csv(citations_scopus, file.path(output_directory, paste0(Sys.Date(), "_scythe_scopus.csv")), row.names = F)
+write.csv(citations_springer, file.path(output_directory, paste0(Sys.Date(), "_scythe_springer.csv")), row.names = F)
+write.csv(citations_plos, file.path(output_directory, paste0(Sys.Date(), "_scythe_plos.csv")), row.names = F)
+write.csv(citations_xdd, file.path(output_directory, paste0(Sys.Date(), "_scythe_xdd.csv")), row.names = F)
 
 # Write results in .json format for easy upload to DataOne Metrics Database - need to remove duplicate citations first
 scythe::write_citation_pairs(citations_scopus, file.path(output_directory, paste0("")))
