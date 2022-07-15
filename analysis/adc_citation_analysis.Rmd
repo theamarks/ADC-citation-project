@@ -299,6 +299,50 @@ job::job({
     }
 }, title = paste0("xdd citation search ", Sys.time()))
 ```
+```{r run_failed_query_dois_again}
+doi_error_scopus <- citations_scopus[is.na(citations_scopus$article_id),"dataset_id"]
+doi_error_springer <- citations_springer[is.na(citations_springer$article_id), "dataset_id"] # no errors
+doi_error_plos <- citations_plos[is.na(citations_plos$article_id), "dataset_id"] # why is this a dataframe?
+doi_error_xdd <- citations_xdd[is.na(citations_xdd$article_id), "dataset_id"] # no errors
+
+######### Scopus # this isn't working
+citations_error_scopus <- data.frame()
+job::job({
+  for (i in seq_along(doi_error_scopus)) {
+    # access API keys within background job environment
+    keyring::keyring_unlock("scythe", key)
+    # suppress errors and continue loop iteration
+    result <- tryCatch(citation <- scythe::citation_search(doi_error_scopus[i], "scopus"),
+                       error = function(err) {
+                         data.frame("article_id" = NA,
+                                    "article_title" = NA,
+                                    "dataset_id" = doi_error_scopus[i],
+                                    "source" = paste0("scopus ", as.character(err)))
+                         }
+                       )
+    citations_error_scopus <- rbind(citations_error_scopus, result)
+  }
+}, title = paste0("scopus error citation search ", Sys.time()))
+
+######### PLOS
+citations_error_plos <- data.frame()
+job::job({
+  for (i in seq_along(doi_error_plos$article_id)) {
+    # access API keys within background job environment
+    keyring::keyring_unlock("scythe", key)
+    # suppress errors and continue loop iteration
+    result <- tryCatch(citation <- scythe::citation_search(doi_error_plos$article_id[i], "plos"),
+                       error = function(err) {
+                         data.frame("article_id" = NA,
+                                    "article_title" = NA,
+                                    "dataset_id" = doi_error_plos$article_id[i],
+                                    "source" = paste0("plos", as.character(err)))
+                         }
+                       )
+    citations_error_plos <- rbind(citations_error_plos, result)
+    }
+}, title = paste0("plos error citation search ", Sys.time()))
+```
 
 
 ```{r save_scythe_results}
