@@ -231,37 +231,6 @@ job::job({
 }, title = paste0("scopus citation search ", Sys.time()))
 
 
-######### Springer
-
-# divide ADC corpus into chunks less than Springer's 5,000/day request limit
-springer_limit <- 4995
-length(adc_all_dois) / springer_limit
-chunk_1 <- adc_all_dois[1:springer_limit]
-chunk_2 <- adc_all_dois[springer_limit:(springer_limit*2)]
-chunk_3 <- adc_all_dois[(springer_limit*2):length(adc_all_dois)]
-
-# change second object to search next chunk of DOIs
-doi_chunk = chunk_2
-
-job::job({
-  for (i in seq_along(doi_chunk)){ 
-    # access API keys within background job environment
-    keyring::keyring_unlock("scythe", key)
-    # suppress errors and continue loop iteration
-    result <- tryCatch(citation <- scythe::citation_search(doi_chunk[i], "springer"),
-                       error = function(err) {
-                         data.frame("article_id" = NA,
-                                    "article_title" = NA,
-                                    "dataset_id" = doi_chunk[i],
-                                    "source" = paste0("springer ", as.character(err)))
-                         }
-                       )
-    citations_springer <- rbind(citations_springer, result)
-    }
-}, title = paste0("springer citation search", Sys.time())
-)
-
-
 ######### PLOS
 job::job({
   for (i in seq_along(adc_all_dois)) {
@@ -299,11 +268,45 @@ job::job({
     }
 }, title = paste0("xdd citation search ", Sys.time()))
 ```
+
+```{r springer_search_throttled}
+######### Springer
+
+# divide ADC corpus into chunks less than Springer's 5,000/day request limit
+springer_limit <- 4995
+length(adc_all_dois) / springer_limit
+chunk_1 <- adc_all_dois[1:springer_limit]
+chunk_2 <- adc_all_dois[springer_limit:(springer_limit*2)]
+chunk_3 <- adc_all_dois[(springer_limit*2):length(adc_all_dois)]
+
+# change "chunk_x" object to search next chunk of DOIs. Must wait 24 hrs from last request. 
+doi_chunk = chunk_1
+
+job::job({
+  for (i in seq_along(doi_chunk)){ 
+    # access API keys within background job environment
+    keyring::keyring_unlock("scythe", key)
+    # suppress errors and continue loop iteration
+    result <- tryCatch(citation <- scythe::citation_search(doi_chunk[i], "springer"),
+                       error = function(err) {
+                         data.frame("article_id" = NA,
+                                    "article_title" = NA,
+                                    "dataset_id" = doi_chunk[i],
+                                    "source" = paste0("springer ", as.character(err)))
+                         }
+                       )
+    citations_springer <- rbind(citations_springer, result)
+    }
+}, title = paste0("springer citation search", Sys.time())
+)
+```
+
+
 ```{r run_failed_query_dois_again}
-doi_error_scopus <- citations_scopus[is.na(citations_scopus$article_id),"dataset_id"]
-doi_error_springer <- citations_springer[is.na(citations_springer$article_id), "dataset_id"] # no errors
-doi_error_plos <- citations_plos[is.na(citations_plos$article_id), "dataset_id"] # why is this a dataframe?
-doi_error_xdd <- citations_xdd[is.na(citations_xdd$article_id), "dataset_id"] # no errors
+doi_error_scopus <- citations_scopus[is.na(citations_scopus$article_id),"dataset_id"]$dataset_id
+doi_error_springer <- citations_springer[is.na(citations_springer$article_id), "dataset_id"]$dataset_id # no errors
+doi_error_plos <- citations_plos[is.na(citations_plos$article_id), "dataset_id"]$dataset_id
+doi_error_xdd <- citations_xdd[is.na(citations_xdd$article_id), "dataset_id"]$dataset_id # no errors
 
 ######### Scopus # this isn't working
 citations_error_scopus <- data.frame()
@@ -324,18 +327,21 @@ job::job({
   }
 }, title = paste0("scopus error citation search ", Sys.time()))
 
+# add error citations results to main scopus results data.frame
+citations_scopus <- rbind(citations_scopus, citations_error_scopus)
+
 ######### PLOS
 citations_error_plos <- data.frame()
 job::job({
-  for (i in seq_along(doi_error_plos$article_id)) {
+  for (i in seq_along(doi_error_plos)) {
     # access API keys within background job environment
     keyring::keyring_unlock("scythe", key)
     # suppress errors and continue loop iteration
-    result <- tryCatch(citation <- scythe::citation_search(doi_error_plos$article_id[i], "plos"),
+    result <- tryCatch(citation <- scythe::citation_search(doi_error_plos[i], "plos"),
                        error = function(err) {
                          data.frame("article_id" = NA,
                                     "article_title" = NA,
-                                    "dataset_id" = doi_error_plos$article_id[i],
+                                    "dataset_id" = doi_error_plos[i],
                                     "source" = paste0("plos", as.character(err)))
                          }
                        )
@@ -345,18 +351,24 @@ job::job({
 # empty dataframe return means no citations found
 ```
 
-
 ```{r save_scythe_results}
-## Save results as .csvs to project output folder
-write.csv(citations_scopus, file.path(output_directory, paste0(Sys.Date(), "_scythe_scopus.csv")), row.names = F)
-write.csv(citations_springer, file.path(output_directory, paste0(Sys.Date(), "_scythe_springer.csv")), row.names = F)
-write.csv(citations_plos, file.path(output_directory, paste0(Sys.Date(), "_scythe_plos.csv")), row.names = F)
-write.csv(citations_xdd, file.path(output_directory, paste0(Sys.Date(), "_scythe_xdd.csv")), row.names = F)
+## Save results as .csv's to project output folder
+date <- "2022-07-14"
+
+write.csv(citations_scopus, 
+          file.path(output_directory, paste0("scythe_", date, "_scopus.csv")), row.names = F)
+write.csv(citations_springer, 
+          file.path(output_directory, paste0("scythe_", date, "_springer.csv")), row.names = F)
+write.csv(citations_plos, 
+          file.path(output_directory, paste0("scythe_", date, "_plos.csv")), row.names = F)
+write.csv(citations_xdd, 
+          file.path(output_directory, paste0("scythe_", date, "_xdd.csv")), row.names = F)
 
 # Write results in .json format for easy upload to DataOne Metrics Database - need to remove duplicate citations first
 scythe::write_citation_pairs(citations_scopus, file.path(output_directory, paste0("")))
 
 ```
+
 
 #### 4. Compare `scythe` results to DataOne Metrics citations
 
