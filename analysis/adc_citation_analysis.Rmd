@@ -269,6 +269,8 @@ job::job({
 }, title = paste0("xdd citation search ", Sys.time()))
 ```
 
+Springer's API query limits affected how we ran our search. We decided to break the list of ADC DOIs into < 5,000 DOI chunks and run each chunk manually through the API with 24hrs in between the last query and starting the next DOI chunk. We could have changed the base `scythe` function `citation_search_springer()` to slow down to accommodate both request limits, but this would substantially slow down the function and make smaller DOIs queries slow and cumbersome. 
+
 ```{r springer_search_throttled}
 ######### Springer
 
@@ -327,6 +329,8 @@ job::job({
   }
 }, title = paste0("scopus error citation search ", Sys.time()))
 
+# save search results from errored DOI
+write_csv(citations_error_scopus, "./output/scythe_2022-07-14_scopus_error.csv")
 # add error citations results to main scopus results data.frame
 citations_scopus <- rbind(citations_scopus, citations_error_scopus)
 
@@ -348,7 +352,7 @@ job::job({
     citations_error_plos <- rbind(citations_error_plos, result)
     }
 }, title = paste0("plos error citation search ", Sys.time()))
-# empty dataframe return means no citations found
+# empty dataframe return means no citations found and no HTTP errors
 ```
 
 ```{r save_scythe_results}
@@ -381,13 +385,7 @@ dataone_met_cit <- dataone_cit %>%
          "dataset_id" = target_id) %>% 
   select(article_id, dataset_id)
 
-# Combine all scythe results from all sources (this will be cleaner eventually, like this for the sake of running)
-scopus <- read_csv("../output/scythe_scopus_2022-06-30.csv")
-springer <- read_csv("../output/scythe_springer_2022-06-30.csv")
-plos <- read_csv("../output/scythe_plos_2022-06-30.csv")
-xdd <- read_csv("../output/scythe_xdd_2022-06-30.csv")
-
-scythe_cit <- rbind(scopus, springer, plos, xdd)
+scythe_cit <- rbind(citations_scopus, citations_springer, citations_plos, citations_xdd)
 
 # only show citations found by scythe that do not already appear in the DataOne Metrics service
 new_scythe_cit <- anti_join(scythe_cit, dataone_met_cit, by = c("article_id", "dataset_id")) %>% 
