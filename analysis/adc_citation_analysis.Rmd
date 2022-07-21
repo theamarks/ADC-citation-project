@@ -342,6 +342,7 @@ job::job({
     citations_error_plos <- rbind(citations_error_plos, result)
     }
 }, title = paste0("plos error citation search ", Sys.time()))
+# empty dataframe return means no citations found
 ```
 
 
