@@ -400,10 +400,21 @@ overlap_scopus_springer <- inner_join(citations_scopus, citations_springer, by =
 overlap_scopus_xdd <- inner_join(citations_scopus, citations_xdd, by = c("article_id", "dataset_id"))
 overlap_springer_xdd <- inner_join(citations_springer, citations_xdd, by = c("article_id", "dataset_id"))
 
+# This is NOT the way to calculate overlap. need to incorporate the matched citations above
 scythe_overlap_sum <- scythe_cit %>% 
   group_by(source) %>% 
   summarise("total_citations_found" = n(),
-            "prc_overlap_plos" = nrow(scythe_cit[scythe_cit$source == "plos",])/total_citations_found)
+            "prc_plos_overlaps" = nrow(scythe_cit[scythe_cit$source == "plos",])/total_citations_found,
+            "prc_scopus_overlaps" = nrow(scythe_cit[scythe_cit$source == "scopus",])/total_citations_found,
+            "prc_springer_overlaps" = nrow(scythe_cit[scythe_cit$source == "springer",])/total_citations_found,
+            "prc_xdd_overlaps" = nrow(scythe_cit[scythe_cit$source == "xdd",])/total_citations_found)
+
+#could write function to inner_join() based on source column. Try this vvvv next
+calc_prct_overlap <- function(source_1, source_2){
+  pairs <- inner_join(source_1, source_2, by = c("article_id", "dataset_id"))
+  overlap <- nrow(pairs) / nrow(source_1)
+  return(overlap)
+}
 ```
 
 
