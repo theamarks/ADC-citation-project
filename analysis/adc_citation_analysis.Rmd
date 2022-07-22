@@ -382,6 +382,22 @@ scythe::write_citation_pairs(citations_scopus, file.path(output_directory, paste
 
 ```
 
+#### 5. Calculate citation source overlap
+
+```{r source_overlap}
+scythe_sum <- scythe_cit %>% 
+  group_by(source) %>% 
+  summarise("total_citations_found" = n())
+
+overlap_plos_scopus <- inner_join(citations_plos, citations_scopus, by = c("article_id", "dataset_id"))
+
+overlap_plos_springer <- inner_join(citations_plos, citations_springer, by = c("article_id", "dataset_id"))
+
+overlap_plos_xdd <- inner_join(citations_plos, citations_xdd, by = c("article_id", "dataset_id"))
+overlap_scopus_springer <- inner_join(citations_scopus, citations_springer, by = c("article_id", "dataset_id"))
+overlap_scopus_xdd <- inner_join(citations_scopus, citations_xdd, by = c("article_id", "dataset_id"))
+overlap_springer_xdd <- inner_join(citations_springer, citations_xdd, by = c("article_id", "dataset_id"))
+```
 
 
 
