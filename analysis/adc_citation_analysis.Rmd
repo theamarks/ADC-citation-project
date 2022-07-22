@@ -385,18 +385,25 @@ scythe::write_citation_pairs(citations_scopus, file.path(output_directory, paste
 #### 5. Calculate citation source overlap
 
 ```{r source_overlap}
+scythe_cit <- rbind(citations_scopus, citations_springer, citations_plos, citations_xdd) %>% 
+  filter(!is.na(article_id)) # remove NA/error observations
+
 scythe_sum <- scythe_cit %>% 
   group_by(source) %>% 
   summarise("total_citations_found" = n())
 
+# match article_id and dataset_id columns among results
 overlap_plos_scopus <- inner_join(citations_plos, citations_scopus, by = c("article_id", "dataset_id"))
-
 overlap_plos_springer <- inner_join(citations_plos, citations_springer, by = c("article_id", "dataset_id"))
-
 overlap_plos_xdd <- inner_join(citations_plos, citations_xdd, by = c("article_id", "dataset_id"))
 overlap_scopus_springer <- inner_join(citations_scopus, citations_springer, by = c("article_id", "dataset_id"))
 overlap_scopus_xdd <- inner_join(citations_scopus, citations_xdd, by = c("article_id", "dataset_id"))
 overlap_springer_xdd <- inner_join(citations_springer, citations_xdd, by = c("article_id", "dataset_id"))
+
+scythe_overlap_sum <- scythe_cit %>% 
+  group_by(source) %>% 
+  summarise("total_citations_found" = n(),
+            "prc_overlap_plos" = nrow(scythe_cit[scythe_cit$source == "plos",])/total_citations_found)
 ```
 
 
@@ -411,8 +418,7 @@ dataone_met_cit <- dataone_cit %>%
          "dataset_id" = target_id) %>% 
   select(article_id, dataset_id)
 
-scythe_cit <- rbind(citations_scopus, citations_springer, citations_plos, citations_xdd) %>% 
-  filter(!is.na(article_id)) # remove NA/error observations
+
 
 # only show citations found by scythe that do not already appear in the DataOne Metrics service
 new_scythe_cit <- anti_join(scythe_cit, dataone_met_cit, by = c("article_id", "dataset_id")) %>% 
