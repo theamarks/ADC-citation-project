@@ -18,7 +18,8 @@ Run ADC DOIs through `scythe` & compare to known DataONE metrics citations. Know
 
 ### Questions
 
-1)  Does the addition of xDD search methods and digital library to the Scythe package improve the quality and scope of citations in the ADC?
+1)  Does the addition of the xDD digital library to the Scythe package improve the quality and scope of citations in the ADC?
+
 2)  Does increasing the number of sources we are searching result in more complete coverage (quality)?
 
 -   Overlap in citation among sources
@@ -30,6 +31,7 @@ Run ADC DOIs through `scythe` & compare to known DataONE metrics citations. Know
 -   Dataset citations are rare, N of classifications varies widely, need to control for sampling biases <https://zenodo.org/record/4730857#.YoaQ2WDMKrM>
 
 4)  Total number of citations is extremely useful. Ground truth analysis - for a small number of datasets manually search through literature for citations.
+
 5)  Do usage metrics (downloads and views) correlate well with citation metrics?
 
 ### Methods Overview
@@ -38,8 +40,8 @@ Run ADC DOIs through `scythe` & compare to known DataONE metrics citations. Know
 2)  Get a list of all ADC dataset DOIs
 3)  Run all ADC dataset DOIs through `scythe` libraries
 4)  Review HTTP errors and rerun
+5)  Calculate citation source overlap
 5)  Compare citations from `scythe` to DataONE metrics
-6)  Calculate citation source overlap
 
 ### Setup
 
@@ -472,7 +474,36 @@ source_prct_overlap_2022_07_14 <- readr::read_csv("../output/scythe_2022-07-14_p
 knitr::kable(source_prct_overlap_2022_07_14, caption = "Percent overlap between Scythe sources")
 ```
 
-#### 5. Compare `scythe` results to DataOne Metrics citations
+#### 6. How many completely unique citations found in each source?
+
+```{r}
+unique_plos <- citations_plos %>% 
+  anti_join(citations_scopus, by = c("article_id", "dataset_id")) %>% 
+  anti_join(citations_springer, by = c("article_id", "dataset_id")) %>% 
+  anti_join(citations_xdd, by = c("article_id", "dataset_id")) %>% 
+  filter(!is.na(article_id))
+
+unique_scopus <- citations_scopus %>% 
+  anti_join(citations_plos, by = c("article_id", "dataset_id")) %>% 
+  anti_join(citations_springer, by = c("article_id", "dataset_id")) %>% 
+  anti_join(citations_xdd, by = c("article_id", "dataset_id")) %>% 
+  filter(!is.na(article_id))
+
+unique_springer <- citations_springer %>% 
+  anti_join(citations_plos, by = c("article_id", "dataset_id")) %>% 
+  anti_join(citations_scopus, by = c("article_id", "dataset_id")) %>% 
+  anti_join(citations_xdd, by = c("article_id", "dataset_id")) %>% 
+  filter(!is.na(article_id))
+  
+unique_xdd <- citations_xdd %>% 
+  anti_join(citations_plos, by = c("article_id", "dataset_id")) %>% 
+  anti_join(citations_scopus, by = c("article_id", "dataset_id")) %>% 
+  anti_join(citations_springer, by = c("article_id", "dataset_id")) %>% 
+  filter(!is.na(article_id))
+```
+
+
+#### 7. Compare `scythe` results to DataOne Metrics citations
 
 ```{r new_scythe_citations, eval=TRUE}
 dataone_met_cit <- readr::read_csv("../output/dataone_metrics_cit_2022-07-08.csv")
@@ -495,32 +526,28 @@ new_scythe_sum <- new_scythe_cit %>%
 knitr::kable(new_scythe_sum, caption = "Citations found by scythe not already in DataOne Metrics Service")
 
 new_cit <- unique(new_scythe_cit[,c(1,3)])
+#scythe::write_citation_pairs(new_scythe_cit, path = output_directory)
 ```
 
-#### 6. Calculate citation source overlap/coverage
+### Results
 
-```{r citation_source_overlap}
+1)  Does the addition of the xDD digital library to the Scythe package improve the quality and scope of citations in the ADC?
 
-sources <- list(scopus, plos, xdd) # way to set this at beginning genarically if we add more sources?
-citation_overlap <- data.frame()
+-   How many unique citations were found in xDD and not in any of the other sources? 
 
-match_source_citations <- function(source_1, source_2){
-  x <- plyr::match_df(source_1, source_2, on = c("article_id", "dataset_id")) %>% 
-    dplyr::mutate(matching_source = source_2$source[[1]])
-  return(x)
-}
+2)  Does increasing the number of sources we are searching result in more complete coverage (quality)?
 
-for (i in 1:length(sources)){
-  if(i < length(sources)){
-    match <- match_source_citations(sources[i], sources[i+1])
-  } 
-  citation_overlap <- rbind(citation_overlap, match)
-}
+-   Overlap in citation among sources
+-   Species rarification curve inspired - start to get to a point where we can estimate the actual amount of citation out there. Dataset citations are rare enough the technique may not be applicable.
 
-purrr::map_dfr()
-  
-test <- plyr::match_df(scopus, xdd, on = c("article_id", "dataset_id"))
-```
+3)  Does the prevalence of data citations differ among disciplines (enviro vs SS)?
+
+-   Use ADC dicipline classifications
+-   Dataset citations are rare, N of classifications varies widely, need to control for sampling biases <https://zenodo.org/record/4730857#.YoaQ2WDMKrM>
+
+4)  Total number of citations is extremely useful. Ground truth analysis - for a small number of datasets manually search through literature for citations.
+
+5)  Do usage metrics (downloads and views) correlate well with citation metrics?
 
 ### Next Steps
 
