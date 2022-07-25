@@ -48,13 +48,13 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE, message = FALSE)
 
 ```
 
-```{r directories}
+```{r directories, eval=TRUE}
 output_directory <- "../output"
 
 ```
 
-```{r package_library}
-
+```{r package_library, eval=TRUE}
+library(readr)
 library(jsonlite)
 library(tidyr)
 library(dplyr)
@@ -142,7 +142,6 @@ dataone_cit <- tidyr::unnest(dataone_cit,
 
 write_csv(dataone_cit, file.path(output_directory,
                                  paste0("dataone_metrics_cit_", Sys.Date(),".csv")))
-
 ```
 
 #### 2. Get all ADC DOIs from SOLR query
@@ -368,17 +367,18 @@ job::job({
 ## Save results as .csv's to project output folder
 date <- "2022-07-14"
 
-write.csv(citations_scopus, 
-          file.path(output_directory, paste0("scythe_", date, "_scopus_all.csv")), row.names = F)
-write.csv(citations_springer, 
-          file.path(output_directory, paste0("scythe_", date, "_springer_all.csv")), row.names = F)
-write.csv(citations_plos, 
-          file.path(output_directory, paste0("scythe_", date, "_plos_all.csv")), row.names = F)
-write.csv(citations_xdd, 
-          file.path(output_directory, paste0("scythe_", date, "_xdd_all.csv")), row.names = F)
-
-# Write results in .json format for easy upload to DataOne Metrics Database - need to remove duplicate citations first
-scythe::write_citation_pairs(citations_scopus, file.path(output_directory, paste0("")))
+write.csv(citations_scopus,
+          file.path(output_directory, paste0("scythe_", date, "_scopus_all.csv")),
+          row.names = F)
+write.csv(citations_springer,
+          file.path(output_directory, paste0("scythe_", date, "_springer_all.csv")),
+          row.names = F)
+write.csv(citations_plos,
+          file.path(output_directory, paste0("scythe_", date, "_plos_all.csv")),
+          row.names = F)
+write.csv(citations_xdd,
+          file.path(output_directory, paste0("scythe_", date, "_xdd_all.csv")),
+          row.names = F)
 
 ```
 
@@ -387,51 +387,99 @@ scythe::write_citation_pairs(citations_scopus, file.path(output_directory, paste
 We evaluated the redundancy in citations found among sources by matching citations between source search results. A citation is defined by the unique combination of `article_id` and `dataset_id`. Percent overlap is the percent of total citations found in a source also found in a second source.
 
 ```{r source_overlap}
-scythe_cit <- rbind(citations_scopus, citations_springer, citations_plos, citations_xdd) %>% 
+scythe_cit <-
+  rbind(citations_scopus,
+        citations_springer,
+        citations_plos,
+        citations_xdd) %>%
   filter(!is.na(article_id)) # remove NA/error observations
 
-scythe_sum <- scythe_cit %>% 
-  group_by(source) %>% 
+write_csv(scythe_cit, file.path(output_directory, paste0("scythe_", date, "_citations_all.csv")))
+
+scythe_sum <- scythe_cit %>%
+  group_by(source) %>%
   summarise("total_citations_found" = n())
 
 # match article_id and dataset_id columns among results
-overlap_plos_scopus <- inner_join(citations_plos, citations_scopus, by = c("article_id", "dataset_id"))
-overlap_plos_springer <- inner_join(citations_plos, citations_springer, by = c("article_id", "dataset_id"))
-overlap_plos_xdd <- inner_join(citations_plos, citations_xdd, by = c("article_id", "dataset_id"))
-overlap_scopus_springer <- inner_join(citations_scopus, citations_springer, by = c("article_id", "dataset_id"))
-overlap_scopus_xdd <- inner_join(citations_scopus, citations_xdd, by = c("article_id", "dataset_id"))
-overlap_springer_xdd <- inner_join(citations_springer, citations_xdd, by = c("article_id", "dataset_id"))
+overlap_plos_scopus <-
+  inner_join(citations_plos,
+             citations_scopus,
+             by = c("article_id", "dataset_id"))
+overlap_plos_springer <-
+  inner_join(citations_plos,
+             citations_springer,
+             by = c("article_id", "dataset_id"))
+overlap_plos_xdd <-
+  inner_join(citations_plos,
+             citations_xdd,
+             by = c("article_id", "dataset_id"))
+overlap_scopus_springer <-
+  inner_join(citations_scopus,
+             citations_springer,
+             by = c("article_id", "dataset_id"))
+overlap_scopus_xdd <-
+  inner_join(citations_scopus,
+             citations_xdd,
+             by = c("article_id", "dataset_id"))
+overlap_springer_xdd <-
+  inner_join(citations_springer,
+             citations_xdd,
+             by = c("article_id", "dataset_id"))
 
 # function to calculate percent of source citations also found in a second source
-calc_prct_overlap <- function(source_1, source_2){
-  pairs <- inner_join(source_1, source_2, by = c("article_id", "dataset_id"))
-  overlap <- nrow(pairs) / nrow(source_1) # percent of source_1 total also found in source_2 (pairs)
+calc_prct_overlap <- function(source_1, source_2) {
+  pairs <-
+    inner_join(source_1, source_2, by = c("article_id", "dataset_id"))
+  overlap <-
+    nrow(pairs) / nrow(source_1) # percent of source_1 total also found in source_2 (pairs)
   return(overlap)
 }
 
-scythe_overlap_sum <- scythe_cit %>% 
-  mutate("citation_df" = ifelse(source == "plos", "citations_plos",
-                                ifelse(source == "scopus", "citations_scopus",
-                                       ifelse(source == "springer", "citations_springer", "citations_xdd")))) %>% 
-  group_by(source, citation_df) %>% 
-  summarise("total_citations" = n(),
-            "overlap_w_plos_prct" = calc_prct_overlap(eval(parse(text = citation_df)), citations_plos),
-            "overlap_w_scopus_prct" = calc_prct_overlap(eval(parse(text = citation_df)), citations_scopus),
-            "overlap_w_springer_prct" = calc_prct_overlap(eval(parse(text = citation_df)), citations_springer),
-            "overlap_w_xdd_prct" = calc_prct_overlap(eval(parse(text = citation_df)), citations_xdd)) %>% 
-  select(1,3:7)
-
-scythe_overlap_sum
-
+scythe_overlap_sum <- scythe_cit %>%
+  mutate("citation_df" = ifelse(
+    source == "plos",
+    "citations_plos",
+    ifelse(
+      source == "scopus",
+      "citations_scopus",
+      ifelse(source == "springer", "citations_springer", "citations_xdd")
+    )
+  )) %>%
+  group_by(source, citation_df) %>%
+  summarise(
+    "total_citations" = n(),
+    "prct_in_plos" = calc_prct_overlap(eval(parse(text = citation_df)), 
+                                              citations_plos),
+    "prct_in_scopus" = calc_prct_overlap(eval(parse(text = citation_df)), 
+                                                citations_scopus),
+    "prct_in_springer" = calc_prct_overlap(eval(parse(text = citation_df)), 
+                                                  citations_springer),
+    "prct_in_xdd" = calc_prct_overlap(eval(parse(text = citation_df)), 
+                                             citations_xdd)
+  ) %>%
+  select(1, 3:7)
+# Save summary table to output folder
+write.csv(scythe_overlap_sum,
+          file.path(
+            output_directory,
+            paste0("scythe_", date, "_prct_overlap.csv")
+          ),
+          row.names = F)
 ```
 
+```{r overlap_results_table, eval=TRUE}
+source_prct_overlap_2022_07_14 <- readr::read_csv("../output/scythe_2022-07-14_prct_overlap.csv")
+knitr::kable(source_prct_overlap_2022_07_14, caption = "Percent overlap between Scythe sources")
+```
 
 #### 5. Compare `scythe` results to DataOne Metrics citations
 
-```{r new_scythe_citations}
+```{r new_scythe_citations, eval=TRUE}
+dataone_met_cit <- readr::read_csv("../output/dataone_metrics_cit_2022-07-08.csv")
+scythe_cit <- read_csv("../output/scythe_2022-07-14_citations_all.csv")
 # source_id = 'Unique identifier to the source dataset / document / article that cited the target dataset '
 # target_id = 'Unique identifier to the target DATAONE dataset. This is the dataset that was cited.'
-dataone_met_cit <- dataone_cit %>% 
+dataone_met_cit <- dataone_met_cit %>% 
   rename("article_id" = source_id, # rename dataone metrics citations columns to match scythe results
          "dataset_id" = target_id) %>% 
   select(article_id, dataset_id)
@@ -440,11 +488,11 @@ dataone_met_cit <- dataone_cit %>%
 new_scythe_cit <- anti_join(scythe_cit, dataone_met_cit, by = c("article_id", "dataset_id")) %>% 
   na.omit()
 
-sum_scythe <- new_scythe_cit %>% 
+new_scythe_sum <- new_scythe_cit %>% 
   group_by(source) %>% 
   summarise("new_citations" = n())
 
-sum_scythe
+knitr::kable(new_scythe_sum, caption = "Citations found by scythe not already in DataOne Metrics Service")
 
 new_cit <- unique(new_scythe_cit[,c(1,3)])
 ```
