@@ -400,21 +400,26 @@ overlap_scopus_springer <- inner_join(citations_scopus, citations_springer, by =
 overlap_scopus_xdd <- inner_join(citations_scopus, citations_xdd, by = c("article_id", "dataset_id"))
 overlap_springer_xdd <- inner_join(citations_springer, citations_xdd, by = c("article_id", "dataset_id"))
 
-# This is NOT the way to calculate overlap. need to incorporate the matched citations above
-scythe_overlap_sum <- scythe_cit %>% 
-  group_by(source) %>% 
-  summarise("total_citations_found" = n(),
-            "prc_plos_overlaps" = nrow(scythe_cit[scythe_cit$source == "plos",])/total_citations_found,
-            "prc_scopus_overlaps" = nrow(scythe_cit[scythe_cit$source == "scopus",])/total_citations_found,
-            "prc_springer_overlaps" = nrow(scythe_cit[scythe_cit$source == "springer",])/total_citations_found,
-            "prc_xdd_overlaps" = nrow(scythe_cit[scythe_cit$source == "xdd",])/total_citations_found)
-
 #could write function to inner_join() based on source column. Try this vvvv next
 calc_prct_overlap <- function(source_1, source_2){
   pairs <- inner_join(source_1, source_2, by = c("article_id", "dataset_id"))
-  overlap <- nrow(pairs) / nrow(source_1)
+  overlap <- nrow(pairs) / nrow(source_1) # percent of source_1 total also found in source_2 (pairs)
   return(overlap)
 }
+
+# This is NOT the way to calculate overlap. need to incorporate the matched citations above
+scythe_overlap_sum <- scythe_cit %>% 
+  mutate("citation_df" = ifelse(source == "plos", "citations_plos",
+                                ifelse(source == "scopus", "citations_scopus",
+                                       ifelse(source == "springer", "citations_springer", "citations_xdd")))) %>% 
+  group_by(source, citation_df) %>% 
+  summarise("total_citations_found" = n(),
+            "prct_overlap_in_plos" = calc_prct_overlap(eval(parse(text = citation_df)), citations_plos),
+            "prct_overlap_in_scopus" = calc_prct_overlap(eval(parse(text = citation_df)), citations_scopus),
+            "prct_overlap_in_springer" = calc_prct_overlap(eval(parse(text = citation_df)), citations_springer),
+            "prct_overlap_in_xdd" = calc_prct_overlap(eval(parse(text = citation_df)), citations_xdd))
+
+
 ```
 
 
