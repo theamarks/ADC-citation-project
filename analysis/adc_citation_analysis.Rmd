@@ -476,7 +476,12 @@ knitr::kable(source_prct_overlap_2022_07_14, caption = "Percent overlap between 
 
 #### 6. How many completely unique citations found in each source?
 
-```{r}
+```{r unique_citations_by_source, eval = TRUE}
+citations_plos <- readr::read_csv("../output/scythe_2022-07-14_plos.csv")
+citations_scopus <- readr::read_csv("../output/scythe_2022-07-14_scopus.csv")
+citations_springer <- readr::read_csv("../output/scythe_2022-07-14_springer.csv")
+citations_xdd <- readr::read_csv("../output/scythe_2022-07-14_xdd.csv")
+
 unique_plos <- citations_plos %>% 
   anti_join(citations_scopus, by = c("article_id", "dataset_id")) %>% 
   anti_join(citations_springer, by = c("article_id", "dataset_id")) %>% 
@@ -500,6 +505,11 @@ unique_xdd <- citations_xdd %>%
   anti_join(citations_scopus, by = c("article_id", "dataset_id")) %>% 
   anti_join(citations_springer, by = c("article_id", "dataset_id")) %>% 
   filter(!is.na(article_id))
+
+unique_citations <- data.frame("source" = c("plos", "scopus", "springer", "xdd"),
+                               "unique_citations" = c(nrow(unique_plos), nrow(unique_scopus), nrow(unique_springer), nrow(unique_xdd)))
+
+knitr::kable(unique_citations, caption = "Number of citations only found within each source")
 ```
 
 
@@ -519,13 +529,6 @@ dataone_met_cit <- dataone_met_cit %>%
 new_scythe_cit <- anti_join(scythe_cit, dataone_met_cit, by = c("article_id", "dataset_id")) %>% 
   na.omit()
 
-new_scythe_sum <- new_scythe_cit %>% 
-  group_by(source) %>% 
-  summarise("new_citations" = n())
-
-knitr::kable(new_scythe_sum, caption = "Citations found by scythe not already in DataOne Metrics Service")
-
-new_cit <- unique(new_scythe_cit[,c(1,3)])
 #scythe::write_citation_pairs(new_scythe_cit, path = output_directory)
 ```
 
