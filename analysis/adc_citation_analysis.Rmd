@@ -507,11 +507,11 @@ unique_xdd <- citations_xdd %>%
   filter(!is.na(article_id))
 
 unique_citations <- data.frame("source" = c("plos", "scopus", "springer", "xdd"),
-                               "unique_citations" = c(nrow(unique_plos), nrow(unique_scopus), nrow(unique_springer), nrow(unique_xdd)))
+                               "unique_citations" = c(nrow(unique_plos), nrow(unique_scopus), 
+                                                      nrow(unique_springer), nrow(unique_xdd)))
 
 knitr::kable(unique_citations, caption = "Number of citations only found within each source")
 ```
-
 
 #### 7. Compare `scythe` results to DataOne Metrics citations
 
@@ -536,7 +536,7 @@ new_scythe_cit <- anti_join(scythe_cit, dataone_met_cit, by = c("article_id", "d
 
 1)  Does the addition of the xDD digital library to the Scythe package improve the quality and scope of citations in the ADC?
 
--   How many unique citations were found in xDD and not in any of the other sources? 
+-   How many unique citations were found in xDD and not in any of the other sources? xDD found `r nrow(unique_xdd)` unique citations not found in Scoupus, Springer, or PLOS digital libraries. ## new to DataOne Metric service (should be CrossRef & ORCID reports in `dataone_citations_reporter.csv`)
 
 2)  Does increasing the number of sources we are searching result in more complete coverage (quality)?
 
