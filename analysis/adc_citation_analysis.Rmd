@@ -526,10 +526,10 @@ dataone_met_cit <- dataone_met_cit %>%
   select(article_id, dataset_id)
 
 # only show citations found by scythe that do not already appear in the DataOne Metrics service
-new_scythe_cit <- anti_join(scythe_cit, dataone_met_cit, by = c("article_id", "dataset_id")) %>% 
+scythe_citations_new <- anti_join(scythe_cit, dataone_met_cit, by = c("article_id", "dataset_id")) %>% 
   na.omit()
 
-#scythe::write_citation_pairs(new_scythe_cit, path = output_directory)
+scythe::write_citation_pairs(scythe_citations_new, path = paste0("../output/scythe_", date,"_citation_pairs.json"))
 ```
 
 ### Results
