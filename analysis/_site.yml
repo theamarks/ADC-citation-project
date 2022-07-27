@@ -3,7 +3,7 @@ output_dir: "docs"
 navbar:
   left:
   - text: Analysis
-    href: adc_citation_analysis.html
+    href: index.Rmd
 output:
   html_document:
     theme: spacelab
