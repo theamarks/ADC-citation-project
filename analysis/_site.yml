@@ -4,7 +4,7 @@ navbar:
   title: "Arctic Data Center Dataset Citation Analysis"
   left:
   - text: Analysis
-    href: index.Rmd
+    href: index.html
 output:
   html_document:
     theme: spacelab
