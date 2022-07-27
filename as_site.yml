@@ -1,12 +1,5 @@
 name: "my-website"
 output_dir: "docs"
-navbar:
-  title: "Data Visualisation with R"
-  left:
-    - text: "Home"
-      href: Visualisation.html
-    - text: "About"
-      href: about.html
 output:
   html_document:
     theme: spacelab
