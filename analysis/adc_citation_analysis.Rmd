@@ -1,16 +1,15 @@
 ---
 title: "Arctic Data Center Dataset Citation Analysis"
+subtitle: "Data Fellowship Project 2022"
 author: "Althea Marks"
 date: "`r Sys.Date()`"
-output:
+output: 
   html_document:
-    df_print: paged
-  toc_float: yes
-  toc_collapsed: yes
-  toc_depth: 3
-  theme: spacelab
-  toc: yes
-subtitle: Data Fellowship Project 2022
+    toc: true
+    toc_float: true
+    toc_collapsed: true
+    toc_depth: 3
+    theme: spacelab
 ---
 
 ### Purpose
