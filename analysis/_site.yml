@@ -1,6 +1,7 @@
 name: "ADC Citations"
 output_dir: "docs"
 navbar:
+  title: "Arctic Data Center Dataset Citation Analysis"
   left:
   - text: Analysis
     href: index.Rmd
