@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+<meta name="author" content="Althea Marks" />
+
+<meta name="date" content="2022-07-27" />
+
+<title>Arctic Data Center Dataset Citation Analysis</title>
+
+<script src="site_libs/header-attrs-2.14/header-attrs.js"></script>
+<script src="site_libs/jquery-3.6.0/jquery-3.6.0.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/spacelab.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+<link rel="stylesheet" href="styles.css" type="text/css" />
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+details > summary > p:only-child {
+  display: inline;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.tab('show');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-bs-toggle="collapse" data-target="#navbar" data-bs-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">Arctic Data Center Dataset Citation Analysis</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li>
+  <a href="index.Rmd">Analysis</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+
+
+<h1 class="title toc-ignore">Arctic Data Center Dataset Citation
+Analysis</h1>
+<h3 class="subtitle">Data Fellowship Project 2022</h3>
+<h4 class="author">Althea Marks</h4>
+<h4 class="date">2022-07-27</h4>
+
+</div>
+
+
+<div id="purpose" class="section level3">
+<h3>Purpose</h3>
+<p>Run ADC DOIs through <code>scythe</code> &amp; compare to known
+DataONE metrics citations. Known ADC citations have mixed origins
+including DataCite, pervious <code>scythe</code> runs, and mannual
+additions via the ADC UI.</p>
+</div>
+<div id="questions" class="section level3">
+<h3>Questions</h3>
+<ol style="list-style-type: decimal">
+<li><p>Does the addition of the xDD digital library to the Scythe
+package improve the quality and scope of citations in the ADC?</p></li>
+<li><p>Does increasing the number of sources we are searching result in
+more complete coverage (quality)?</p></li>
+</ol>
+<ul>
+<li>Overlap in citation among sources</li>
+<li>Species rarification curve inspired - start to get to a point where
+we can estimate the actual amount of citation out there. Dataset
+citations are rare enough the technique may not be applicable.</li>
+</ul>
+<ol start="3" style="list-style-type: decimal">
+<li>Does the prevalence of data citations differ among disciplines
+(enviro vs SS)?</li>
+</ol>
+<ul>
+<li>Use ADC dicipline classifications</li>
+<li>Dataset citations are rare, N of classifications varies widely, need
+to control for sampling biases <a
+href="https://zenodo.org/record/4730857#.YoaQ2WDMKrM"
+class="uri">https://zenodo.org/record/4730857#.YoaQ2WDMKrM</a></li>
+</ul>
+<ol start="4" style="list-style-type: decimal">
+<li><p>Total number of citations is extremely useful. Ground truth
+analysis - for a small number of datasets manually search through
+literature for citations.</p></li>
+<li><p>Do usage metrics (downloads and views) correlate well with
+citation metrics?</p></li>
+</ol>
+</div>
+<div id="methods-overview" class="section level3">
+<h3>Methods Overview</h3>
+<ol style="list-style-type: decimal">
+<li>Gather existing/known ADC dataset citations picked up by the
+automated DataONE metrics API</li>
+<li>Get a list of all ADC dataset DOIs</li>
+<li>Run all ADC dataset DOIs through <code>scythe</code> libraries</li>
+<li>Review HTTP errors and rerun</li>
+<li>Calculate citation source overlap</li>
+<li>Compare citations from <code>scythe</code> to DataONE metrics</li>
+</ol>
+</div>
+<div id="setup" class="section level3">
+<h3>Setup</h3>
+<pre class="r"><code>output_directory &lt;- &quot;../output&quot;</code></pre>
+<pre class="r"><code>library(readr)
+library(jsonlite)
+library(tidyr)
+library(dplyr)
+library(dataone)
+library(job)
+library(magrittr)
+library(readr)
+# library(scythe) # published version of package
+
+# install development version of scythe package with added xdd library
+devtools::install_github(&quot;dataoneorg/scythe@develop&quot;)</code></pre>
+</div>
+<div id="analysis" class="section level3">
+<h3>Analysis</h3>
+<div
+id="retrieve-all-adc-citations-with-get-api-request-with-the-following-request-body"
+class="section level4">
+<h4>1. Retrieve all ADC citations with GET API request with the
+following request body</h4>
+<p>metrics service production endpoint: <a
+href="https://logproc-stage-ucsb-1.test.dataone.org/metrics"
+class="uri">https://logproc-stage-ucsb-1.test.dataone.org/metrics</a>
+documentation: <a
+href="https://app.swaggerhub.com/apis/nenuji/data-metrics/1.0.0.3"
+class="uri">https://app.swaggerhub.com/apis/nenuji/data-metrics/1.0.0.3</a></p>
+<pre class="r"><code>{
+  &quot;metricsPage&quot;:{
+    &quot;total&quot;:0,
+    &quot;start&quot;:0,
+    &quot;count&quot;:0
+  },
+  &quot;metrics&quot;:[&quot;citations&quot;],
+  &quot;filterBy&quot;:[{
+    &quot;filterType&quot;:&quot;repository&quot;,
+    &quot;values&quot;:[&quot;urn:node:ARCTIC&quot;],
+    &quot;interpretAs&quot;:&quot;list&quot;
+  },
+  {
+    &quot;filterType&quot;:&quot;month&quot;,
+    &quot;values&quot;:[&quot;01/01/2012&quot;,
+              &quot;05/24/2022&quot;],
+    &quot;interpretAs&quot;:&quot;range&quot;
+  }],
+  &quot;groupBy&quot;:[&quot;month&quot;]
+}</code></pre>
+<p>Example request:</p>
+<pre class="r"><code>https://logproc-stage-ucsb-1.test.dataone.org/metrics?metricsRequest={%22metricsPage%22:{%22total%22:0,%22start%22:0,%22count%22:0},%22metrics%22:[%22citations%22],%22filterBy%22:[{%22filterType%22:%22repository%22,%22values%22:[%22urn:node:ARCTIC%22],%22interpretAs%22:%22list%22},{%22filterType%22:%22month%22,%22values%22:[%2201/01/2012%22,%2205/24/2022%22],%22interpretAs%22:%22range%22}],%22groupBy%22:[%22month%22]
+}</code></pre>
+<p>Function to retrieve dataset citations generated by DataOne metrics
+service (from Jeanette Clark):</p>
+<pre class="r"><code>metrics_citations &lt;- function(from = as.POSIXct(&quot;2010-01-01&quot;), to = as.POSIXct(Sys.Date())){
+
+    from &lt;- as.Date(from); to &lt;- as.Date(to)
+    from_q &lt;- paste(stringr::str_pad(lubridate::month(from), 2, side = &quot;left&quot;, pad = &quot;0&quot;),
+                    stringr::str_pad(lubridate::day(from), 2, side = &quot;left&quot;, pad = &quot;0&quot;),
+                    stringr::str_pad(lubridate::year(from), 2, side = &quot;left&quot;, pad = &quot;0&quot;),
+                    sep = &quot;/&quot;)
+
+    to_q &lt;- paste(stringr::str_pad(lubridate::month(to), 2, side = &quot;left&quot;, pad = &quot;0&quot;),
+                  stringr::str_pad(lubridate::day(to), 2, side = &quot;left&quot;, pad = &quot;0&quot;),
+                  stringr::str_pad(lubridate::year(to), 2, side = &quot;left&quot;, pad = &quot;0&quot;),
+                  sep = &quot;/&quot;)
+
+    d &lt;- jsonlite::fromJSON(paste0(&#39;https://logproc-stage-ucsb-1.test.dataone.org/metrics?q={%22metricsPage%22:{%22total%22:0,%22start%22:0,%22count%22:0},%22metrics%22:[%22citations%22],%22filterBy%22:[{%22filterType%22:%22repository%22,%22values%22:[%22urn:node:ARCTIC%22],%22interpretAs%22:%22list%22},{%22filterType%22:%22month%22,%22values%22:[%22&#39;, from_q,&#39;%22,%22&#39;, to_q, &#39;%22],%22interpretAs%22:%22range%22}],%22groupBy%22:[%22month%22]}&#39;))
+
+    output_json &lt;- d$resultDetails$citations # pulls citation info
+    output_df &lt;- as.data.frame(do.call(rbind, output_json), row.names = FALSE) # binds nested cit info into dataframe
+   # output_clean &lt;- rownames_to_column(output_df, var = &quot;citation_id&quot;) # converts row names to column
+    return(output_df)
+}</code></pre>
+<pre class="r"><code># Run ADC API Get call, unnest target_id results to individual columns
+dataone_cit &lt;- metrics_citations()
+
+dataone_cit &lt;- tidyr::unnest(dataone_cit,
+                          cols = c(target_id, source_id, source_url,
+                                   link_publication_date, origin, title,
+                                   publisher, journal, volume, page, year_of_publishing))
+
+write_csv(dataone_cit, file.path(output_directory,
+                                 paste0(&quot;dataone_metrics_cit_&quot;, Sys.Date(),&quot;.csv&quot;)))</code></pre>
+</div>
+<div id="get-all-adc-dois-from-solr-query" class="section level4">
+<h4>2. Get all ADC DOIs from SOLR query</h4>
+<p>DataOne metrics API can only provide data package DOIs with
+citations, and can not provide a comprehensive list of all data package
+DOIs contained within the ADC. To search through all the repository
+metadata we query the DataONE search index (Apache SOLR search engine).
+SOLR is the same underlying mechanism that DataONE uses in the online
+tool and can create complex logical query conditions.</p>
+<pre class="r"><code># complete list of searchable values
+#getQueryEngineDescription(cn, &quot;solr&quot;)
+
+# set coordinationg node
+cn &lt;- dataone::CNode(&quot;PROD&quot;)
+
+# point to specific member node
+mn &lt;- dataone::getMNode(cn, &quot;urn:node:ARCTIC&quot;)
+
+# set up Solr query parameters
+queryParamList &lt;- list(q=&quot;id:doi*&quot;, 
+                       fl=&quot;id,title,dateUploaded,datasource&quot;,
+                       start =&quot;0&quot;,
+                       rows = &quot;100000&quot;)
+# use `q = &quot;identifier:doi* AND (*:* NOT obsoletedBy:*)&quot;` to only include current versions of data packages 
+
+# send query to Solr, return results as dataframe
+solr_adc_result &lt;- dataone::query(mn, solrQuery=queryParamList, as=&quot;data.frame&quot;, parse=FALSE)
+
+write.csv(solr_adc_result, file.path(output_directory, 
+                                     paste0(Sys.Date(), &quot;_solr_adc.csv&quot;)))</code></pre>
+</div>
+<div id="run-all-adc-dataset-dois-through-scythe-libraries"
+class="section level4">
+<h4>3. Run all ADC dataset DOIs through <code>scythe</code>
+libraries</h4>
+<pre class="r"><code># create vector of all ADC DOIs from solr query `result`
+adc_all_dois &lt;- c(solr_adc_result$id)</code></pre>
+<p>APIs can have request rate limits. These specific rates are often
+found in the API documentation or the API response headers. If request
+rate limits are exceeded API queries will fail.</p>
+<pre class="r"><code># Scopus request Limits
+key_scopus &lt;- scythe::scythe_get_key(&quot;scopus&quot;)
+url &lt;- paste0(&quot;https://api.elsevier.com/content/search/scopus?query=ALL:&quot;,
+  &quot;10.18739/A2M32N95V&quot;,
+  paste(&quot;&amp;APIKey=&quot;, key_scopus, sep = &quot;&quot;))
+
+curlGetHeaders(url)
+# [15:17] shows &quot;X-RateLimit-Limit:&quot;, &quot;X-RateLimit-Remaining:&quot;, and &quot;X-RateLimit-Reset:&quot; (Unix epoch is the number of seconds that have elapsed since January 1, 1970 at midnight UTC time minus the leap seconds)
+
+# Springer request Limits
+# 300 calls/min and 5000/day
+# not found in response header, received email from springer that I was exceeding their rates above
+
+#key_spring &lt;- scythe::scythe_get_key(&quot;springer&quot;)
+#url_spring &lt;- paste0(&quot;http://api.springernature.com/meta/v2/json?q=doi:10.1007/BF00627098&amp;api_key=&quot;, key_spring)
+#curlGetHeaders(url_spring)</code></pre>
+<p>Run each library search in parallel in separate background jobs to
+keep console available to work with. By default the
+<code>job::job()</code> imports the global environment into the
+background job.</p>
+<p><strong>Important Note</strong> <code>scythe::scythe_set_key()</code>
+is a wrapper for the <code>key_ring</code> package. An interactive
+password prompt is required to access the API keys stored in
+<code>key_ring</code>. This <em>does not work</em> within a background
+job environment; your keyring needs to be temporarily unlocked with
+<code>keyring::keyring_unlock("scythe", "your password")</code> replace
+<code>password</code> with your actual keyring password. Be careful not
+to save, commit, or push your personal keyring password.</p>
+<pre class="r"><code># Run each source/library search in a separate background job. Running a for loop will return incomplete results if API query fails, which is better than loosing all progress because of a single error in a single vector call.  
+
+key &lt;- &quot;password&quot;
+
+# Set up empty results data.frames
+citations_scopus &lt;- data.frame()
+citations_springer &lt;- data.frame()
+citations_plos &lt;- data.frame()
+citations_xdd &lt;- data.frame()
+
+
+######### Scopus
+job::job({
+  for (i in seq_along(adc_all_dois)) {
+    # access API keys within background job environment
+    keyring::keyring_unlock(&quot;scythe&quot;, key)
+    # suppress errors and continue loop iteration
+    result &lt;- tryCatch(citation &lt;- scythe::citation_search(adc_all_dois[i], &quot;scopus&quot;),
+                       error = function(err) {
+                         data.frame(&quot;article_id&quot; = NA,
+                                    &quot;article_title&quot; = NA,
+                                    &quot;dataset_id&quot; = adc_all_dois[i],
+                                    &quot;source&quot; = paste0(&quot;scopus &quot;, as.character(err)))
+                         }
+                       )
+    citations_scopus &lt;- rbind(citations_scopus, result)
+  }
+}, title = paste0(&quot;scopus citation search &quot;, Sys.time()))
+
+
+######### PLOS
+job::job({
+  for (i in seq_along(adc_all_dois)) {
+    # access API keys within background job environment
+    keyring::keyring_unlock(&quot;scythe&quot;, key)
+    # suppress errors and continue loop iteration
+    result &lt;- tryCatch(citation &lt;- scythe::citation_search(adc_all_dois[i], &quot;plos&quot;),
+                       error = function(err) {
+                         data.frame(&quot;article_id&quot; = NA,
+                                    &quot;article_title&quot; = NA,
+                                    &quot;dataset_id&quot; = adc_all_dois[i],
+                                    &quot;source&quot; = paste0(&quot;plos&quot;, as.character(err)))
+                         }
+                       )
+    citations_plos &lt;- rbind(citations_plos, result)
+    }
+}, title = paste0(&quot;plos citation search &quot;, Sys.time()))
+
+
+########## XDD
+job::job({
+  for (i in seq_along(adc_all_dois)) {
+    # access API keys within background job environment
+    keyring::keyring_unlock(&quot;scythe&quot;, key)
+    # suppress errors and continue loop iteration
+    result &lt;- tryCatch(citation &lt;- scythe::citation_search(adc_all_dois[i], &quot;xdd&quot;),
+                       error = function(err) {
+                         data.frame(&quot;article_id&quot; = NA,
+                                    &quot;article_title&quot; = NA,
+                                    &quot;dataset_id&quot; = adc_all_dois[i],
+                                    &quot;source&quot; = paste0(&quot;xdd&quot;, as.character(err)))
+                         }
+                       )
+    citations_xdd &lt;- rbind(citations_xdd, result)
+    }
+}, title = paste0(&quot;xdd citation search &quot;, Sys.time()))</code></pre>
+<p>Springer’s API query limits affected how we ran our search. We
+decided to break the list of ADC DOIs into &lt; 5,000 DOI chunks and run
+each chunk manually through the API with 24hrs in between the last query
+and starting the next DOI chunk. We could have changed the base
+<code>scythe</code> function <code>citation_search_springer()</code> to
+slow down to accommodate both request limits, but this would
+substantially slow down the function and make smaller DOIs queries slow
+and cumbersome.</p>
+<pre class="r"><code>######### Springer
+
+# divide ADC corpus into chunks less than Springer&#39;s 5,000/day request limit
+springer_limit &lt;- 4995
+length(adc_all_dois) / springer_limit
+chunk_1 &lt;- adc_all_dois[1:springer_limit]
+chunk_2 &lt;- adc_all_dois[springer_limit:(springer_limit*2)]
+chunk_3 &lt;- adc_all_dois[(springer_limit*2):length(adc_all_dois)]
+
+# change &quot;chunk_x&quot; object to search next chunk of DOIs. Must wait 24 hrs from last request. 
+doi_chunk = chunk_1
+
+job::job({
+  for (i in seq_along(doi_chunk)){ 
+    # access API keys within background job environment
+    keyring::keyring_unlock(&quot;scythe&quot;, key)
+    # suppress errors and continue loop iteration
+    result &lt;- tryCatch(citation &lt;- scythe::citation_search(doi_chunk[i], &quot;springer&quot;),
+                       error = function(err) {
+                         data.frame(&quot;article_id&quot; = NA,
+                                    &quot;article_title&quot; = NA,
+                                    &quot;dataset_id&quot; = doi_chunk[i],
+                                    &quot;source&quot; = paste0(&quot;springer &quot;, as.character(err)))
+                         }
+                       )
+    citations_springer &lt;- rbind(citations_springer, result)
+    }
+}, title = paste0(&quot;springer citation search&quot;, Sys.time())
+)</code></pre>
+</div>
+<div id="dealing-with-api-request-errors" class="section level4">
+<h4>4. Dealing with API request errors</h4>
+<p>The <code>tryCatch()</code> functions in the above search
+<code>for</code> loops records errors produced from any API request. The
+corresponding DOIs can be aggregated and rerun through
+<code>scythe</code>. The code below does this. When running the DOIs
+with HTTP errors through Scopus a second time we discovered a small bug
+in the <code>scythe</code> code which was subsequently fixed.</p>
+<pre class="r"><code>doi_error_scopus &lt;- citations_scopus[is.na(citations_scopus$article_id),&quot;dataset_id&quot;]$dataset_id
+doi_error_springer &lt;- citations_springer[is.na(citations_springer$article_id), &quot;dataset_id&quot;]$dataset_id # no errors
+doi_error_plos &lt;- citations_plos[is.na(citations_plos$article_id), &quot;dataset_id&quot;]$dataset_id
+doi_error_xdd &lt;- citations_xdd[is.na(citations_xdd$article_id), &quot;dataset_id&quot;]$dataset_id # no errors
+
+######### Scopus # this isn&#39;t working
+citations_error_scopus &lt;- data.frame()
+job::job({
+  for (i in seq_along(doi_error_scopus)) {
+    # access API keys within background job environment
+    keyring::keyring_unlock(&quot;scythe&quot;, key)
+    # suppress errors and continue loop iteration
+    result &lt;- tryCatch(citation &lt;- scythe::citation_search(doi_error_scopus[i], &quot;scopus&quot;),
+                       error = function(err) {
+                         data.frame(&quot;article_id&quot; = NA,
+                                    &quot;article_title&quot; = NA,
+                                    &quot;dataset_id&quot; = doi_error_scopus[i],
+                                    &quot;source&quot; = paste0(&quot;scopus &quot;, as.character(err)))
+                         }
+                       )
+    citations_error_scopus &lt;- rbind(citations_error_scopus, result)
+  }
+}, title = paste0(&quot;scopus error citation search &quot;, Sys.time()))
+
+# save search results from errored DOI
+write_csv(citations_error_scopus, &quot;./output/scythe_2022-07-14_scopus_error.csv&quot;)
+# add error citations results to main scopus results data.frame
+citations_scopus &lt;- rbind(citations_scopus, citations_error_scopus)
+
+######### PLOS
+citations_error_plos &lt;- data.frame()
+job::job({
+  for (i in seq_along(doi_error_plos)) {
+    # access API keys within background job environment
+    keyring::keyring_unlock(&quot;scythe&quot;, key)
+    # suppress errors and continue loop iteration
+    result &lt;- tryCatch(citation &lt;- scythe::citation_search(doi_error_plos[i], &quot;plos&quot;),
+                       error = function(err) {
+                         data.frame(&quot;article_id&quot; = NA,
+                                    &quot;article_title&quot; = NA,
+                                    &quot;dataset_id&quot; = doi_error_plos[i],
+                                    &quot;source&quot; = paste0(&quot;plos&quot;, as.character(err)))
+                         }
+                       )
+    citations_error_plos &lt;- rbind(citations_error_plos, result)
+    }
+}, title = paste0(&quot;plos error citation search &quot;, Sys.time()))
+# empty dataframe return means no citations found and no HTTP errors</code></pre>
+<pre class="r"><code>## Save results as .csv&#39;s to project output folder
+date &lt;- &quot;2022-07-14&quot;
+
+write.csv(citations_scopus,
+          file.path(output_directory, paste0(&quot;scythe_&quot;, date, &quot;_scopus_all.csv&quot;)),
+          row.names = F)
+write.csv(citations_springer,
+          file.path(output_directory, paste0(&quot;scythe_&quot;, date, &quot;_springer_all.csv&quot;)),
+          row.names = F)
+write.csv(citations_plos,
+          file.path(output_directory, paste0(&quot;scythe_&quot;, date, &quot;_plos_all.csv&quot;)),
+          row.names = F)
+write.csv(citations_xdd,
+          file.path(output_directory, paste0(&quot;scythe_&quot;, date, &quot;_xdd_all.csv&quot;)),
+          row.names = F)</code></pre>
+</div>
+<div id="calculate-citation-source-overlap" class="section level4">
+<h4>5. Calculate citation source overlap</h4>
+<p>We evaluated the redundancy in citations found among sources by
+matching citations between source search results. A citation is defined
+by the unique combination of <code>article_id</code> and
+<code>dataset_id</code>. Percent overlap is the percent of total
+citations found in a source also found in a second source.</p>
+<pre class="r"><code>scythe_cit &lt;-
+  rbind(citations_scopus,
+        citations_springer,
+        citations_plos,
+        citations_xdd) %&gt;%
+  filter(!is.na(article_id)) # remove NA/error observations
+
+write_csv(scythe_cit, file.path(output_directory, paste0(&quot;scythe_&quot;, date, &quot;_citations_all.csv&quot;)))
+
+scythe_sum &lt;- scythe_cit %&gt;%
+  group_by(source) %&gt;%
+  summarise(&quot;total_citations_found&quot; = n())
+
+# match article_id and dataset_id columns among results
+overlap_plos_scopus &lt;-
+  inner_join(citations_plos,
+             citations_scopus,
+             by = c(&quot;article_id&quot;, &quot;dataset_id&quot;))
+overlap_plos_springer &lt;-
+  inner_join(citations_plos,
+             citations_springer,
+             by = c(&quot;article_id&quot;, &quot;dataset_id&quot;))
+overlap_plos_xdd &lt;-
+  inner_join(citations_plos,
+             citations_xdd,
+             by = c(&quot;article_id&quot;, &quot;dataset_id&quot;))
+overlap_scopus_springer &lt;-
+  inner_join(citations_scopus,
+             citations_springer,
+             by = c(&quot;article_id&quot;, &quot;dataset_id&quot;))
+overlap_scopus_xdd &lt;-
+  inner_join(citations_scopus,
+             citations_xdd,
+             by = c(&quot;article_id&quot;, &quot;dataset_id&quot;))
+overlap_springer_xdd &lt;-
+  inner_join(citations_springer,
+             citations_xdd,
+             by = c(&quot;article_id&quot;, &quot;dataset_id&quot;))
+
+# function to calculate percent of source citations also found in a second source
+calc_prct_overlap &lt;- function(source_1, source_2) {
+  pairs &lt;-
+    inner_join(source_1, source_2, by = c(&quot;article_id&quot;, &quot;dataset_id&quot;))
+  overlap &lt;-
+    nrow(pairs) / nrow(source_1) # percent of source_1 total also found in source_2 (pairs)
+  return(overlap)
+}
+
+scythe_overlap_sum &lt;- scythe_cit %&gt;%
+  mutate(&quot;citation_df&quot; = ifelse(
+    source == &quot;plos&quot;,
+    &quot;citations_plos&quot;,
+    ifelse(
+      source == &quot;scopus&quot;,
+      &quot;citations_scopus&quot;,
+      ifelse(source == &quot;springer&quot;, &quot;citations_springer&quot;, &quot;citations_xdd&quot;)
+    )
+  )) %&gt;%
+  group_by(source, citation_df) %&gt;%
+  summarise(
+    &quot;total_citations&quot; = n(),
+    &quot;prct_in_plos&quot; = calc_prct_overlap(eval(parse(text = citation_df)), 
+                                              citations_plos),
+    &quot;prct_in_scopus&quot; = calc_prct_overlap(eval(parse(text = citation_df)), 
+                                                citations_scopus),
+    &quot;prct_in_springer&quot; = calc_prct_overlap(eval(parse(text = citation_df)), 
+                                                  citations_springer),
+    &quot;prct_in_xdd&quot; = calc_prct_overlap(eval(parse(text = citation_df)), 
+                                             citations_xdd)
+  ) %&gt;%
+  select(1, 3:7)
+# Save summary table to output folder
+write.csv(scythe_overlap_sum,
+          file.path(
+            output_directory,
+            paste0(&quot;scythe_&quot;, date, &quot;_prct_overlap.csv&quot;)
+          ),
+          row.names = F)</code></pre>
+<pre class="r"><code>source_prct_overlap_2022_07_14 &lt;- readr::read_csv(&quot;../output/scythe_2022-07-14_prct_overlap.csv&quot;)
+knitr::kable(source_prct_overlap_2022_07_14, caption = &quot;Percent overlap between Scythe sources&quot;)</code></pre>
+<table style="width:100%;">
+<caption>Percent overlap between Scythe sources</caption>
+<colgroup>
+<col width="10%" />
+<col width="19%" />
+<col width="15%" />
+<col width="18%" />
+<col width="20%" />
+<col width="14%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">source</th>
+<th align="right">total_citations</th>
+<th align="right">prct_in_plos</th>
+<th align="right">prct_in_scopus</th>
+<th align="right">prct_in_springer</th>
+<th align="right">prct_in_xdd</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">plos</td>
+<td align="right">38</td>
+<td align="right">1.0000000</td>
+<td align="right">0.1774194</td>
+<td align="right">0.0000000</td>
+<td align="right">0.0000000</td>
+</tr>
+<tr class="even">
+<td align="left">scopus</td>
+<td align="right">644</td>
+<td align="right">0.0169231</td>
+<td align="right">1.0000000</td>
+<td align="right">0.0923077</td>
+<td align="right">0.1846154</td>
+</tr>
+<tr class="odd">
+<td align="left">springer</td>
+<td align="right">166</td>
+<td align="right">0.0000000</td>
+<td align="right">0.3614458</td>
+<td align="right">1.0000000</td>
+<td align="right">0.0060241</td>
+</tr>
+<tr class="even">
+<td align="left">xdd</td>
+<td align="right">323</td>
+<td align="right">0.0000000</td>
+<td align="right">0.3715170</td>
+<td align="right">0.0030960</td>
+<td align="right">1.0000000</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="how-many-completely-unique-citations-found-in-each-source"
+class="section level4">
+<h4>6. How many completely unique citations found in each source?</h4>
+<pre class="r"><code>citations_plos &lt;- readr::read_csv(&quot;../output/scythe_2022-07-14_plos.csv&quot;)
+citations_scopus &lt;- readr::read_csv(&quot;../output/scythe_2022-07-14_scopus.csv&quot;)
+citations_springer &lt;- readr::read_csv(&quot;../output/scythe_2022-07-14_springer.csv&quot;)
+citations_xdd &lt;- readr::read_csv(&quot;../output/scythe_2022-07-14_xdd.csv&quot;)
+
+unique_plos &lt;- citations_plos %&gt;% 
+  anti_join(citations_scopus, by = c(&quot;article_id&quot;, &quot;dataset_id&quot;)) %&gt;% 
+  anti_join(citations_springer, by = c(&quot;article_id&quot;, &quot;dataset_id&quot;)) %&gt;% 
+  anti_join(citations_xdd, by = c(&quot;article_id&quot;, &quot;dataset_id&quot;)) %&gt;% 
+  filter(!is.na(article_id))
+
+unique_scopus &lt;- citations_scopus %&gt;% 
+  anti_join(citations_plos, by = c(&quot;article_id&quot;, &quot;dataset_id&quot;)) %&gt;% 
+  anti_join(citations_springer, by = c(&quot;article_id&quot;, &quot;dataset_id&quot;)) %&gt;% 
+  anti_join(citations_xdd, by = c(&quot;article_id&quot;, &quot;dataset_id&quot;)) %&gt;% 
+  filter(!is.na(article_id))
+
+unique_springer &lt;- citations_springer %&gt;% 
+  anti_join(citations_plos, by = c(&quot;article_id&quot;, &quot;dataset_id&quot;)) %&gt;% 
+  anti_join(citations_scopus, by = c(&quot;article_id&quot;, &quot;dataset_id&quot;)) %&gt;% 
+  anti_join(citations_xdd, by = c(&quot;article_id&quot;, &quot;dataset_id&quot;)) %&gt;% 
+  filter(!is.na(article_id))
+  
+unique_xdd &lt;- citations_xdd %&gt;% 
+  anti_join(citations_plos, by = c(&quot;article_id&quot;, &quot;dataset_id&quot;)) %&gt;% 
+  anti_join(citations_scopus, by = c(&quot;article_id&quot;, &quot;dataset_id&quot;)) %&gt;% 
+  anti_join(citations_springer, by = c(&quot;article_id&quot;, &quot;dataset_id&quot;)) %&gt;% 
+  filter(!is.na(article_id))
+
+unique_citations &lt;- data.frame(&quot;source&quot; = c(&quot;plos&quot;, &quot;scopus&quot;, &quot;springer&quot;, &quot;xdd&quot;),
+                               &quot;unique_citations&quot; = c(nrow(unique_plos), nrow(unique_scopus), 
+                                                      nrow(unique_springer), nrow(unique_xdd)))
+
+knitr::kable(unique_citations, caption = &quot;Number of citations only found within each source&quot;)</code></pre>
+<table>
+<caption>Number of citations only found within each source</caption>
+<thead>
+<tr class="header">
+<th align="left">source</th>
+<th align="right">unique_citations</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">plos</td>
+<td align="right">27</td>
+</tr>
+<tr class="even">
+<td align="left">scopus</td>
+<td align="right">453</td>
+</tr>
+<tr class="odd">
+<td align="left">springer</td>
+<td align="right">105</td>
+</tr>
+<tr class="even">
+<td align="left">xdd</td>
+<td align="right">202</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="compare-scythe-results-to-dataone-metrics-citations"
+class="section level4">
+<h4>7. Compare <code>scythe</code> results to DataOne Metrics
+citations</h4>
+<pre class="r"><code>dataone_met_cit &lt;- readr::read_csv(&quot;../output/dataone_metrics_cit_2022-07-08.csv&quot;)
+scythe_cit &lt;- read_csv(&quot;../output/scythe_2022-07-14_citations_all.csv&quot;)
+# source_id = &#39;Unique identifier to the source dataset / document / article that cited the target dataset &#39;
+# target_id = &#39;Unique identifier to the target DATAONE dataset. This is the dataset that was cited.&#39;
+dataone_met_cit &lt;- dataone_met_cit %&gt;% 
+  rename(&quot;article_id&quot; = source_id, # rename dataone metrics citations columns to match scythe results
+         &quot;dataset_id&quot; = target_id) %&gt;% 
+  select(article_id, dataset_id)
+
+# only show citations found by scythe that do not already appear in the DataOne Metrics service
+scythe_citations_new &lt;- anti_join(scythe_cit, dataone_met_cit, by = c(&quot;article_id&quot;, &quot;dataset_id&quot;)) %&gt;% 
+  na.omit()
+
+# scythe::write_citation_pairs(scythe_citations_new, 
+#                              path = paste0(&quot;../output/scythe_&quot;, date,&quot;_citation_pairs.json&quot;))</code></pre>
+</div>
+</div>
+<div id="results" class="section level3">
+<h3>Results</h3>
+<ol style="list-style-type: decimal">
+<li>Does the addition of the xDD digital library to the Scythe package
+improve the quality and scope of citations in the ADC?</li>
+</ol>
+<ul>
+<li>How many unique citations were found in xDD and not in any of the
+other sources? xDD found 202 unique citations not found in Scoupus,
+Springer, or PLOS digital libraries. ## new to DataOne Metric service
+(should be CrossRef &amp; ORCID reports in
+<code>dataone_citations_reporter.csv</code>)</li>
+</ul>
+<ol start="2" style="list-style-type: decimal">
+<li>Does increasing the number of sources we are searching result in
+more complete coverage (quality)?</li>
+</ol>
+<ul>
+<li>Overlap in citation among sources</li>
+<li>Species rarification curve inspired - start to get to a point where
+we can estimate the actual amount of citation out there. Dataset
+citations are rare enough the technique may not be applicable.</li>
+</ul>
+<ol start="3" style="list-style-type: decimal">
+<li>Does the prevalence of data citations differ among disciplines
+(enviro vs SS)?</li>
+</ol>
+<ul>
+<li>Use ADC dicipline classifications</li>
+<li>Dataset citations are rare, N of classifications varies widely, need
+to control for sampling biases <a
+href="https://zenodo.org/record/4730857#.YoaQ2WDMKrM"
+class="uri">https://zenodo.org/record/4730857#.YoaQ2WDMKrM</a></li>
+</ul>
+<ol start="4" style="list-style-type: decimal">
+<li><p>Total number of citations is extremely useful. Ground truth
+analysis - for a small number of datasets manually search through
+literature for citations.</p></li>
+<li><p>Do usage metrics (downloads and views) correlate well with
+citation metrics?</p></li>
+</ol>
+</div>
+<div id="next-steps" class="section level3">
+<h3>Next Steps</h3>
+<ul>
+<li>Analysis by discipline</li>
+</ul>
+<p><a
+href="https://bioportal.bioontology.org/ontologies/ADCAD/?p=classes&amp;conceptid=root">Root
+of ADC discipline semantics annotations</a> Classes/ID is where to look
+for query specifics. “Here’s an example SOLR query that looks for two of
+those disciplines:
+<code>https://cn.dataone.org/cn/v2/query/solr/?q=sem_annotation:*ADCAD_00077+OR+sem_annotation:*ADCAD_00005&amp;fl=identifier,formatId,sem_annotation</code>”
+- Matt Need to list every single SS ID in query list, not set up to
+query umbrella SS ID just yet</p>
+</div>
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
