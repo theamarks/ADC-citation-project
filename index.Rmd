@@ -51,7 +51,7 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE, message = FALSE)
 ```
 
 ```{r directories, eval=TRUE}
-output_directory <- "../output"
+output_directory <- "./output"
 
 ```
 
@@ -470,17 +470,17 @@ write.csv(scythe_overlap_sum,
 ```
 
 ```{r overlap_results_table, eval=TRUE}
-source_prct_overlap_2022_07_14 <- readr::read_csv("../output/scythe_2022-07-14_prct_overlap.csv")
+source_prct_overlap_2022_07_14 <- readr::read_csv("./output/scythe_2022-07-14_prct_overlap.csv")
 knitr::kable(source_prct_overlap_2022_07_14, caption = "Percent overlap between Scythe sources")
 ```
 
 #### 6. How many completely unique citations found in each source?
 
 ```{r unique_citations_by_source, eval = TRUE}
-citations_plos <- readr::read_csv("../output/scythe_2022-07-14_plos.csv")
-citations_scopus <- readr::read_csv("../output/scythe_2022-07-14_scopus.csv")
-citations_springer <- readr::read_csv("../output/scythe_2022-07-14_springer.csv")
-citations_xdd <- readr::read_csv("../output/scythe_2022-07-14_xdd.csv")
+citations_plos <- readr::read_csv("./output/scythe_2022-07-14_plos.csv")
+citations_scopus <- readr::read_csv("./output/scythe_2022-07-14_scopus.csv")
+citations_springer <- readr::read_csv("./output/scythe_2022-07-14_springer.csv")
+citations_xdd <- readr::read_csv("./output/scythe_2022-07-14_xdd.csv")
 
 unique_plos <- citations_plos %>% 
   anti_join(citations_scopus, by = c("article_id", "dataset_id")) %>% 
@@ -516,8 +516,8 @@ knitr::kable(unique_citations, caption = "Number of citations only found within 
 #### 7. Compare `scythe` results to DataOne Metrics citations
 
 ```{r new_scythe_citations, eval=TRUE}
-dataone_met_cit <- readr::read_csv("../output/dataone_metrics_cit_2022-07-08.csv")
-scythe_cit <- read_csv("../output/scythe_2022-07-14_citations_all.csv")
+dataone_met_cit <- readr::read_csv("./output/dataone_metrics_cit_2022-07-08.csv")
+scythe_cit <- read_csv("./output/scythe_2022-07-14_citations_all.csv")
 # source_id = 'Unique identifier to the source dataset / document / article that cited the target dataset '
 # target_id = 'Unique identifier to the target DATAONE dataset. This is the dataset that was cited.'
 dataone_met_cit <- dataone_met_cit %>% 
@@ -530,7 +530,7 @@ scythe_citations_new <- anti_join(scythe_cit, dataone_met_cit, by = c("article_i
   na.omit()
 
 # scythe::write_citation_pairs(scythe_citations_new, 
-#                              path = paste0("../output/scythe_", date,"_citation_pairs.json"))
+#                              path = paste0("./output/scythe_", date,"_citation_pairs.json"))
 ```
 
 ### Results

@@ -7,7 +7,7 @@ navbar:
     href: index.html
 output:
   html_document:
-    theme: spacelab
+    theme: cosmo
     toc: true
     highlight: textmate
     css: styles.css
