@@ -1,8 +1,9 @@
 name: "ADC Citations"
 output_dir: "docs"
 navbar:
+  left:
   - text: Analysis
-    href: /analysis/adc_citation_analysis.html
+    href: adc_citation_analysis.html
 output:
   html_document:
     theme: spacelab
