@@ -1,9 +1,10 @@
 # Searching for Elusive Arctic Dataset Citations
-2022 Data Science Fellowship Project • Althea N. Marks
+2022 Data Science Fellowship Project 
+Althea N. Marks
 
-NSF Arctic Data Center 
-
-National Center of Ecological Analysis and Synthesis
+[NSF Arctic Data Center](https://arcticdata.io/)
+[National Center of Ecological Analysis and Synthesis](https://www.nceas.ucsb.edu/)
+University of California Santa Barbara
 
 ## Goals
 
@@ -16,7 +17,6 @@ While developing the next version of the package we seek to understand:
 Our findings will guide future efforts to record accurate dataset metrics at the Arctic Data Center and other repositories interested in tracking published dataset citations.
 
 ## Background
-
 
 Academic researchers increasingly recognize the importance of publishing datasets in conjunction with peer-reviewed articles. 
 Published datasets can be cited for many reasons, including to increase transparency and reproducibility of the research, to publicize that data are available for reuse by other researchers, and to provide credit to the authors when data are reused. 
