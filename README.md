@@ -1,5 +1,6 @@
 # Searching for Elusive Arctic Dataset Citations
 2022 Data Science Fellowship Project
+Althea N. Marks
 
 NSF Arctic Data Center 
 
