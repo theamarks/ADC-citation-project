@@ -18,7 +18,7 @@ Our findings will guide future efforts to record accurate dataset metrics at the
 
 ## Analysis Report
 
-[See my analysis report here](https://theamarks.github.io/ADC-citation-project/)
+<https://theamarks.github.io/ADC-citation-project/>
 
 ## Background
 
