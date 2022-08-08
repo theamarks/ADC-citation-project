@@ -16,7 +16,7 @@ While developing the next version of the package we seek to understand:
 
 Our findings will guide future efforts to record accurate dataset metrics at the Arctic Data Center and other repositories interested in tracking published dataset citations.
 
-## Analysis Report
+## Analysis Webpage (ongoing project)
 
 <https://theamarks.github.io/ADC-citation-project/>
 
