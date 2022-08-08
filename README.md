@@ -16,6 +16,10 @@ While developing the next version of the package we seek to understand:
 
 Our findings will guide future efforts to record accurate dataset metrics at the Arctic Data Center and other repositories interested in tracking published dataset citations.
 
+## Analysis Report
+
+[See my analysis report here](https://theamarks.github.io/ADC-citation-project/)
+
 ## Background
 
 Academic researchers increasingly recognize the importance of publishing datasets in conjunction with peer-reviewed articles. 
