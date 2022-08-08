@@ -1,9 +1,9 @@
 # Searching for Elusive Arctic Dataset Citations
-2022 Data Science Fellowship Project 
+2022 Data Science Fellowship Project  
 Althea N. Marks
 
-[NSF Arctic Data Center](https://arcticdata.io/)
-[National Center of Ecological Analysis and Synthesis](https://www.nceas.ucsb.edu/)
+[NSF Arctic Data Center](https://arcticdata.io/)  
+[National Center of Ecological Analysis and Synthesis](https://www.nceas.ucsb.edu/)  
 University of California Santa Barbara
 
 ## Goals
