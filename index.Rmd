@@ -559,14 +559,22 @@ scythe_citations_new <- anti_join(scythe_cit, dataone_met_cit, by = c("article_i
 
 [Root of ADC discipline semantics annotations](https://bioportal.bioontology.org/ontologies/ADCAD/?p=classes&conceptid=root) Classes/ID is where to look for query specifics. "Here's an example SOLR query that looks for two of those disciplines: `https://cn.dataone.org/cn/v2/query/solr/?q=sem_annotation:*ADCAD_00077+OR+sem_annotation:*ADCAD_00005&fl=identifier,formatId,sem_annotation`" - Matt Need to list every single SS ID in query list, not set up to query umbrella SS ID just yet
 
-```{r}
-res[[i]] <- dataone::query(mn, list(q = paste0('id:"', rr[[i]], '"'),
-                                          fl = 'id,title,sem_annotation',
-                                          sort = 'dateUploaded+desc',
-                                          rows = 1000),
-                                 as = "data.frame")
+```{r discipline_semantics}
+# read in saved solr results
+solr <- readr::read_csv("./output/solr_adc_2022-07-08.csv")
+# pull out list of DOIs
+adc_doi <- solr$id
 
-
+res <- list()
+for(i in seq_along(adc_doi)){
+  res[[i]] <- dataone::query(mn, 
+                             list(q = paste0('id:"', adc_doi[[i]], '"'),
+                                  fl = 'id,title,sem_annotation',
+                                  sort = 'dateUploaded+desc',
+                                  rows = 1000),
+                             as = "data.frame", 
+                             parse = FALSE)
+}
 
 
 res <- do.call(bind_rows, res) %>% 
