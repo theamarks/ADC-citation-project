@@ -565,20 +565,28 @@ solr <- readr::read_csv("./output/solr_adc_2022-07-08.csv")
 # pull out list of DOIs
 adc_doi <- solr$id
 
-res <- list()
-for(i in seq_along(adc_doi)){
-  res[[i]] <- dataone::query(mn, 
-                             list(q = paste0('id:"', adc_doi[[i]], '"'),
-                                  fl = 'id,title,sem_annotation',
-                                  sort = 'dateUploaded+desc',
-                                  rows = 1000),
-                             as = "data.frame", 
-                             parse = FALSE)
-}
+# list of query fields
+# getQueryEngineDescription(cn, "solr")
 
 
-res <- do.call(bind_rows, res) %>% 
+
+job::job({
+  res <- list()
+  for(i in seq_along(adc_doi)){
+    res[i] <- dataone::query(mn,
+                            list(q = paste0('id:"', adc_doi[i], '"'),
+                                    fl = 'id,title,sem_annotation',
+                                    sort = 'dateUploaded+desc',
+                                    rows = 1000),
+                            as = "list", 
+                            parse = T)
+    }
+  res <- do.call(bind_rows, res) %>% 
     mutate(url = paste0("https://arcticdata.io/catalog/view/", id))
+  }, title = paste0("Solr sem annotation ", Sys.time())
+  )
+############################
+
 
 adc_disc <- read.csv("https://raw.githubusercontent.com/NCEAS/adc-disciplines/main/adc-disciplines.csv") 
 
