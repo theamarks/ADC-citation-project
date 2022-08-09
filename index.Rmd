@@ -560,37 +560,31 @@ scythe_citations_new <- anti_join(scythe_cit, dataone_met_cit, by = c("article_i
 [Root of ADC discipline semantics annotations](https://bioportal.bioontology.org/ontologies/ADCAD/?p=classes&conceptid=root) Classes/ID is where to look for query specifics. "Here's an example SOLR query that looks for two of those disciplines: `https://cn.dataone.org/cn/v2/query/solr/?q=sem_annotation:*ADCAD_00077+OR+sem_annotation:*ADCAD_00005&fl=identifier,formatId,sem_annotation`" - Matt Need to list every single SS ID in query list, not set up to query umbrella SS ID just yet
 
 ```{r discipline_semantics}
-# read in saved solr results
-solr <- readr::read_csv("./output/solr_adc_2022-07-08.csv")
-# pull out list of DOIs
-adc_doi <- solr$id
+# Run second Solr query to pull semantic annotations for 2022_08_09 DOIs
 
-# list of query fields
-# getQueryEngineDescription(cn, "solr")
+# set coordinationg node
+cn <- dataone::CNode("PROD")
+
+# point to specific member node
+mn <- dataone::getMNode(cn, "urn:node:ARCTIC")
+
+# set up Solr query parameters
+queryParamList <- list(q="id:doi*", 
+                       fl="id,title,dateUploaded,datasource,sem_annotation",
+                       start ="0",
+                       rows = "100000")
+
+# send query to Solr, return results as dataframe
+solr_adc_sem <- dataone::query(mn, solrQuery=queryParamList, as="data.frame", parse=TRUE)
 
 
 
-job::job({
-  res <- list()
-  for(i in seq_along(adc_doi)){
-    res[i] <- dataone::query(mn,
-                            list(q = paste0('id:"', adc_doi[i], '"'),
-                                    fl = 'id,title,sem_annotation',
-                                    sort = 'dateUploaded+desc',
-                                    rows = 1000),
-                            as = "list", 
-                            parse = T)
-    }
-  res <- do.call(bind_rows, res) %>% 
-    mutate(url = paste0("https://arcticdata.io/catalog/view/", id))
-  }, title = paste0("Solr sem annotation ", Sys.time())
-  )
-############################
+
 
 
 adc_disc <- read.csv("https://raw.githubusercontent.com/NCEAS/adc-disciplines/main/adc-disciplines.csv") 
 
-res$category <- map(res$sem_annotation, function(x){
+res$category <- purrr::map(res$sem_annotation, function(x){
     t <- grep("*ADCAD*", x, value = TRUE)
     cats <- c()
     for (i in 1:length(t)){
