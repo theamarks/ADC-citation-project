@@ -601,3 +601,9 @@ adc_disc_wide <- solr_adc_sem %>%
     select(-sem_annotation)
 ```
 
+```{r map_old_themes_to_ADCAD_ont}
+
+themes <- data.frame("old" = c("atmosphere", "oceanography", "limnology/hydrology", "ice/snow cover", "glaciology", "soil science", "permafrost", "archaeology", "political science", "anthropology", "economics"),
+                     "ADCAD" = c("Atmospheric Science", "Oceanography", "Hydrology", "Cryology", "Glaciology", "Soil Science","Soil Science", "Archaeology", "Political Science", "Anthropology", "Economics"))
+```
+
