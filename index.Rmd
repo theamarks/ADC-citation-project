@@ -602,8 +602,25 @@ adc_disc_wide <- solr_adc_sem %>%
 ```
 
 ```{r map_old_themes_to_ADCAD_ont}
-
+# key from old discipline categories to new ADCAD ontology - approved matches
 themes <- data.frame("old" = c("atmosphere", "oceanography", "limnology/hydrology", "ice/snow cover", "glaciology", "soil science", "permafrost", "archaeology", "political science", "anthropology", "economics"),
                      "ADCAD" = c("Atmospheric Science", "Oceanography", "Hydrology", "Cryology", "Glaciology", "Soil Science","Soil Science", "Archaeology", "Political Science", "Anthropology", "Economics"))
+
+# read in csv with previous classifications
+old_cat <- read.csv("./data/dataset_categorization.csv")
+
+# replace each theme column with updated ADCAD ontology terms for approved direct matches (themes df)
+old_cat$theme1 <- purrr::map(old_cat$id, function(x){
+  old_theme <- old_cat$theme1[which(old_cat$id == x)] # pull theme1 category 
+  if(old_theme %in% themes$old){
+    new_theme <- themes$ADCAD[which(themes$old == old_theme)] # get corresponding new disc
+    return(new_theme) # use disc ontology term to populate column
+  }
+  else{return(old_theme)}
+})
+
+# Next step
+left_join()
+  wide_index <- which(adc_disc_wide$id == doi) # matches dois 
 ```
 
