@@ -595,34 +595,9 @@ solr_adc_sem$category <- purrr::map(solr_adc_sem$sem_annotation, function(x){
     return(cats)
 })
 
-## test
-testfun <- function(x){
-    t <- grep("*ADCAD*", x, value = TRUE)
-    cats <- c()
-    for (i in 1:length(t)){
-        z <- which(adc_disc$an_uri == t[i])
-        cats[i] <- adc_disc$discipline[z]
-        
-    }
-    return(cats)
-}
-
-
-
-
-res$category <- purrr::map(res$sem_annotation, function(x){
-    t <- grep("*ADCAD*", x, value = TRUE)
-    cats <- c()
-    for (i in 1:length(t)){
-        z <- which(adc_disc$an_uri == t[i])
-        cats[i] <- adc_disc$discipline[z]
-        
-    }
-    return(cats)
-})
-
-res_wide <- res %>% 
-    unnest_wider(category, names_sep = "category") %>% 
+# extract discipline categories from single column to populate new columns
+adc_disc_wide <- solr_adc_sem %>% 
+    unnest_wider(category, names_sep ="_") %>% 
     select(-sem_annotation)
 ```
 
