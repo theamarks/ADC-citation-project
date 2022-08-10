@@ -610,14 +610,15 @@ themes <- data.frame("old" = c("atmosphere", "oceanography", "limnology/hydrolog
 old_cat <- read.csv("./data/dataset_categorization.csv")
 
 # replace each theme column with updated ADCAD ontology terms for approved direct matches (themes df)
-old_cat$theme1 <- purrr::map(old_cat$id, function(x){
-  old_theme <- old_cat$theme1[which(old_cat$id == x)] # pull theme1 category 
-  if(old_theme %in% themes$old){
+old_cat$theme1 <- purrr::map(old_cat$theme1, function(old_theme){
+  if(old_theme %in% themes$old){ # replace if old theme is listed
     new_theme <- themes$ADCAD[which(themes$old == old_theme)] # get corresponding new disc
     return(new_theme) # use disc ontology term to populate column
   }
   else{return(old_theme)}
 })
+
+
 
 # Next step
 left_join()
