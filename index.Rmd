@@ -612,9 +612,11 @@ old_cat <- read.csv("./data/dataset_categorization.csv")
 
 # replace old theme categories with new ADCAD ontology terms.
 # only replacing terms that don't need review (themes df), leave the rest. 
+new_cat <- old_cat %>% 
+  select(id)
 
 for(i in colnames(old_cat[7:11])){ # sequence through column names
-  old_cat[[i]] <- purrr::map(old_cat[[i]], function(old_theme){
+  new_cat[[i]] <- purrr::map(old_cat[[i]], function(old_theme){
   if(old_theme %in% themes$old){ # replace if old theme is listed
     new_theme <- themes$ADCAD[which(themes$old == old_theme)] # get corresponding new disc
     return(new_theme) # use disc ontology term to populate column
@@ -623,9 +625,5 @@ for(i in colnames(old_cat[7:11])){ # sequence through column names
 })
 }
 
-
-# Next step
-left_join()
-  wide_index <- which(adc_disc_wide$id == doi) # matches dois 
 ```
 
