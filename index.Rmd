@@ -615,25 +615,30 @@ old_cat <- read.csv("./data/dataset_categorization.csv")
 new_cat <- old_cat %>% 
   select(id)
 
-for(i in colnames(old_cat[7:11])){ # sequence through column names
-  new_cat[[i]] <- purrr::map(old_cat[[i]], function(old_theme){
-  if(old_theme %in% themes$old){ # replace if old theme is listed
-    new_theme <- themes$ADCAD[which(themes$old == old_theme)] # get corresponding new disc
-    return(new_theme) # use disc ontology term to populate column
-  }
-  else{if(old_theme == ""){old_theme <- NA}
-    return(old_theme)
+for(i in colnames(old_cat[7:11])) {
+  # sequence through column names
+  new_cat[[i]] <- purrr::map(old_cat[[i]], function(old_theme) {
+    if (old_theme %in% themes$old) {
+      # replace if old theme is listed
+      new_theme <-
+        themes$ADCAD[which(themes$old == old_theme)] # get corresponding new disc
+      return(new_theme) # use disc ontology term to populate column
+    } else{
+      if (old_theme == "") {
+        old_theme = NA
+      }
+      return(old_theme)
     } # keep old_theme if review is needed
-})
+  })
 }
 
-new_cat[] <- final[final == ""] <- NA 
+# unnest list columns
+new_cat %<>% 
+  unnest(cols = c("theme1", "theme2", "theme3", "theme4", "theme5"))
 
 # Add re-categorization to solr query results (adc_disc_wide)
-adc_disc_new <- adc_disc_wide %>% left_join(new_cat, by = "id")
+adc_disc_new <- adc_disc_wide %>% 
+  left_join(new_cat, by = "id") 
 
-
-test <- adc_disc_new %>% 
-  filter(!is.na(theme1) & !is.null(category_1))
 ```
 
