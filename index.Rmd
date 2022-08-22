@@ -643,7 +643,7 @@ adc_disc_new <- adc_disc_wide %>%
 # check if there is any overlapping entries between theme1 & category_1 
 overlap_cat <- adc_disc_new %>% 
   filter(!is.na(theme1) & !is.na(category_1))
-# There are no dois with discipline categories from both sources
+# ^^There are no dois with discipline categories from both sources
 
 ```
 
