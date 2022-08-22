@@ -612,7 +612,7 @@ old_cat <- read.csv("./data/dataset_categorization.csv")
 # replace old theme categories with new ADCAD ontology terms.
 # only replacing terms that don't need review (themes df), leave the rest. 
 new_cat <- old_cat %>% 
-  select(id)
+  select(url, id)
 
 for(i in colnames(old_cat[7:11])) {
   # sequence through column names
@@ -637,12 +637,37 @@ new_cat %<>%
 
 # Add re-categorization to solr query results (adc_disc_wide)
 adc_disc_new <- adc_disc_wide %>% 
-  left_join(new_cat, by = "id") 
+  left_join(new_cat, by = "id") %>% 
+  mutate(url = url)
 
-# check if there is any overlapping entries between theme1 & category_1 
-overlap_cat <- adc_disc_new %>% 
-  filter(!is.na(theme1) & !is.na(category_1))
-# ^^There are no dois with discipline categories from both sources
+# check if there is any overlapping entries between theme1 & category_1 etc.
+# overlap_cat1 <- adc_disc_new %>% 
+#   filter(!is.na(theme1) & !is.na(category_1))
+# 
+# overlap_cat2 <- adc_disc_new %>% 
+#   filter(!is.na(theme2) & !is.na(category_2))
+# 
+# overlap_cat3 <- adc_disc_new %>% 
+#   filter(!is.na(theme3) & !is.na(category_3))
+# 
+# overlap_cat4 <- adc_disc_new %>% 
+#   filter(!is.na(theme4) & !is.na(category_4))
+# 
+# overlap_cat5 <- adc_disc_new %>% 
+#   filter(!is.na(theme5) & !is.na(category_5))
+# ^^ No overlap between two datasets
 
+# Combine discipline category columns + DOI
+adc_disc_ADCAD <- adc_disc_new %>% 
+  transmute(url = url,
+            id = id,
+            disc_cat_1 = ifelse(!is.na(category_1), category_1, theme1),
+            disc_cat_2 = ifelse(!is.na(category_2), category_2, theme2),
+            disc_cat_3 = ifelse(!is.na(category_3), category_3, theme3),
+            disc_cat_4 = ifelse(!is.na(category_4), category_4, theme4),
+            disc_cat_5 = ifelse(!is.na(category_5), category_5, theme5)
+  )
+# Save results
+# write.csv(adc_disc_ADCAD, "./output/ADC_ADCAD_disciplines.csv", row.names = F)
 ```
 
