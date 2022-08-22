@@ -604,8 +604,7 @@ adc_disc_wide <- solr_adc_sem %>%
 
 ```{r map_old_themes_to_ADCAD_ont}
 # key from old discipline categories to new ADCAD ontology - approved matches
-themes <- data.frame("old" = c("atmosphere", "oceanography", "limnology/hydrology", "ice/snow cover", "glaciology", "soil science", "permafrost", "archaeology", "political science", "anthropology", "economics"),
-                     "ADCAD" = c("Atmospheric Science", "Oceanography", "Hydrology", "Cryology", "Glaciology", "Soil Science","Soil Science", "Archaeology", "Political Science", "Anthropology", "Economics"))
+themes <- read_csv("data/old_themes_ADCAD_key.csv")
 
 # read in csv with previous classifications
 old_cat <- read.csv("./data/dataset_categorization.csv")
