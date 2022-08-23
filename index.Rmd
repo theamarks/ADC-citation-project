@@ -571,8 +571,8 @@ cn <- dataone::CNode("PROD")
 mn <- dataone::getMNode(cn, "urn:node:ARCTIC")
 
 # set up Solr query parameters
-queryParamList <- list(q="id:doi*", 
-                       fl="id,title,dateUploaded,datasource,sem_annotation",
+queryParamList <- list(q = "id:doi* AND (*:* NOT obsoletedBy:*)",
+                       fl = "id,title,dateUploaded,datasource,sem_annotation",
                        start ="0",
                        rows = "100000")
 
