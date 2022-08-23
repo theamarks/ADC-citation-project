@@ -641,19 +641,19 @@ adc_disc_new <- adc_disc_wide %>%
   mutate(url = url)
 
 # check if there is any overlapping entries between theme1 & category_1 etc.
-# overlap_cat1 <- adc_disc_new %>% 
+# overlap_cat1 <- adc_disc_new %>%
 #   filter(!is.na(theme1) & !is.na(category_1))
 # 
-# overlap_cat2 <- adc_disc_new %>% 
+# overlap_cat2 <- adc_disc_new %>%
 #   filter(!is.na(theme2) & !is.na(category_2))
 # 
-# overlap_cat3 <- adc_disc_new %>% 
+# overlap_cat3 <- adc_disc_new %>%
 #   filter(!is.na(theme3) & !is.na(category_3))
 # 
-# overlap_cat4 <- adc_disc_new %>% 
+# overlap_cat4 <- adc_disc_new %>%
 #   filter(!is.na(theme4) & !is.na(category_4))
 # 
-# overlap_cat5 <- adc_disc_new %>% 
+# overlap_cat5 <- adc_disc_new %>%
 #   filter(!is.na(theme5) & !is.na(category_5))
 # ^^ No overlap between two datasets
 
