@@ -661,6 +661,7 @@ adc_disc_new <- adc_disc_wide %>%
 adc_disc_ADCAD <- adc_disc_new %>% 
   transmute(url = url,
             id = id,
+            title = title,
             disc_cat_1 = ifelse(!is.na(category_1), category_1, theme1),
             disc_cat_2 = ifelse(!is.na(category_2), category_2, theme2),
             disc_cat_3 = ifelse(!is.na(category_3), category_3, theme3),
