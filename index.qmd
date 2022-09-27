@@ -537,8 +537,8 @@ knitr::kable(unique_citations, caption = "Number of citations only found within 
 
 ```{r new_scythe_citations, eval=TRUE}
 #| code-fold: true
-dataone_met_cit <- readr::read_csv("./output/dataone_metrics_cit_2022-07-08.csv")
-scythe_cit <- read_csv("./output/scythe_2022-07-14_citations_all.csv")
+dataone_met_cit <- readr::read_csv(file.path(output_directory, "dataone_metrics_cit_2022-07-08.csv"))
+scythe_cit <- read_csv(file.path(output_directory, "scythe_2022-07-14_citations_all.csv"))
 # source_id = 'Unique identifier to the source dataset / document / article that cited the target dataset '
 # target_id = 'Unique identifier to the target DATAONE dataset. This is the dataset that was cited.'
 dataone_met_cit <- dataone_met_cit %>% 
@@ -625,10 +625,10 @@ adc_disc_wide <- solr_adc_sem %>%
 ```{r map_old_themes_to_ADCAD_ont}
 #| code-fold: true
 # key from old discipline categories to new ADCAD ontology - approved matches
-themes <- read_csv("data/old_themes_ADCAD_key.csv")
+themes <- read_csv(file.path("data/old_themes_ADCAD_key.csv"))
 
 # read in csv with previous classifications
-old_cat <- read.csv("./data/dataset_categorization.csv")
+old_cat <- read.csv(file.path("./data/dataset_categorization.csv"))
 
 # replace old theme categories with new ADCAD ontology terms.
 # only replacing terms that don't need review (themes df), leave the rest. 
