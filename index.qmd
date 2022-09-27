@@ -4,12 +4,12 @@ subtitle: "Data Fellowship Project 2022"
 author: "Althea Marks"
 date: "`r Sys.Date()`"
 theme: cosmo 
+code-tools: true
 toc: true
 project:
   type: website
   output-dir: docs
-  code-tools: true
-  self-contained: true
+  
 ---
 
 ### Purpose
@@ -50,7 +50,7 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE, message = FALSE)
 
 ```
 
-```{r directories}
+```{r directories, eval=TRUE}
 #| code-fold: true
 dir.create(path = "./output", showWarnings = F)
 output_directory <- file.path("./output")
@@ -628,7 +628,7 @@ adc_disc_wide <- solr_adc_sem %>%
 themes <- read_csv(file.path("data/old_themes_ADCAD_key.csv"))
 
 # read in csv with previous classifications
-old_cat <- read.csv(file.path("./data/dataset_categorization.csv"))
+old_cat <- read.csv(file.path("data/dataset_categorization.csv"))
 
 # replace old theme categories with new ADCAD ontology terms.
 # only replacing terms that don't need review (themes df), leave the rest. 
