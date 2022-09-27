@@ -8,8 +8,10 @@ code-tools: true
 toc: true
 project:
   type: website
-  output-dir: docs
-  
+  format:
+  html:
+    theme: cosmo
+    output-dir: docs
 ---
 
 ### Purpose
