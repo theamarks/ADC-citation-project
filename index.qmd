@@ -5,10 +5,11 @@ author: "Althea Marks"
 date: "`r Sys.Date()`"
 theme: cosmo 
 toc: true
-format:
-  html:
-    code-tools: true
-    self-contained: true
+project:
+  type: website
+  output-dir: docs
+  code-tools: true
+  self-contained: true
 ---
 
 ### Purpose
@@ -495,10 +496,11 @@ knitr::kable(source_prct_overlap_2022_07_14, caption = "Percent overlap between 
 
 ```{r unique_citations_by_source, eval = TRUE}
 #| code-fold: true
-citations_plos <- readr::read_csv("./output/scythe_2022-07-14_plos.csv")
-citations_scopus <- readr::read_csv("./output/scythe_2022-07-14_scopus.csv")
-citations_springer <- readr::read_csv("./output/scythe_2022-07-14_springer.csv")
-citations_xdd <- readr::read_csv("./output/scythe_2022-07-14_xdd.csv")
+
+citations_plos <- readr::read_csv(file.path(output_directory, "scythe_2022-07-14_plos.csv"))
+citations_scopus <- readr::read_csv(file.path(output_directory, "scythe_2022-07-14_scopus.csv"))
+citations_springer <- readr::read_csv(file.path(output_directory, "scythe_2022-07-14_springer.csv"))
+citations_xdd <- readr::read_csv(file.path(output_directory, "scythe_2022-07-14_xdd.csv"))
 
 unique_plos <- citations_plos %>% 
   anti_join(citations_scopus, by = c("article_id", "dataset_id")) %>% 
