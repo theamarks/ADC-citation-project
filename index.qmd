@@ -6,9 +6,7 @@ date: "`r Sys.Date()`"
 theme: cosmo 
 code-tools: true
 toc: true
-project:
-  type: website
-  format:
+format:
   html:
     theme: cosmo
     output-dir: docs
