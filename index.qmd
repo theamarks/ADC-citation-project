@@ -496,24 +496,11 @@ write.csv(scythe_overlap_sum,
           row.names = F)
 ```
 
-```{r overlap_results_table, eval=TRUE}
-#| code-fold: true
-#| label: tbl-overlap
-#| tbl-cap: "Percent overlap between Scythe sources"
-source_prct_overlap_2022_07_14 <- readr::read_csv("./output/scythe_2022-07-14_prct_overlap.csv")
-source_prct_overlap_2022_07_14$source <- c("PLOS", "Scopus", "Springer", "xDD")
-knitr::kable(source_prct_overlap_2022_07_14, 
-             col.names = c("Source", "Total Citations", "% in PLOS", "% in Scopus", "% in Springer", "% in xDD"), 
-             digits = 3)
-```
 
 ### 6. How many completely unique citations found in each source?
 
 ```{r unique_citations_by_source, eval = TRUE}
 #| code-fold: true
-#| label: tbl-unique
-#| tbl-cap: "Number of citations only found within each source"
-#| tbl-colwidths: [25,25]
 
 citations_plos <- readr::read_csv(file.path(output_directory, "scythe_2022-07-14_plos.csv"))
 citations_scopus <- readr::read_csv(file.path(output_directory, "scythe_2022-07-14_scopus.csv"))
@@ -548,8 +535,6 @@ unique_citations <- data.frame("source" = c("PLOS", "Scopus", "Springer", "xDD")
                                "unique_citations" = c(nrow(unique_plos), nrow(unique_scopus), 
                                                       nrow(unique_springer), nrow(unique_xdd)))
 
-knitr::kable(unique_citations,
-             col.names = c("Source", "Unique Citations"))
 ```
 
 ### 7. Compare `scythe` results to DataOne Metrics citations
@@ -557,7 +542,7 @@ knitr::kable(unique_citations,
 ```{r new_scythe_citations, eval=TRUE}
 #| code-fold: true
 dataone_met_cit <- readr::read_csv(file.path(output_directory, "dataone_metrics_cit_2022-07-08.csv"))
-scythe_cit <- read_csv(file.path(output_directory, "scythe_2022-07-14_citations_all.csv"))
+scythe_cit <- readr::read_csv(file.path(output_directory, "scythe_2022-07-14_citations_all.csv"))
 # source_id = 'Unique identifier to the source dataset / document / article that cited the target dataset '
 # target_id = 'Unique identifier to the target DATAONE dataset. This is the dataset that was cited.'
 dataone_met_cit <- dataone_met_cit %>% 
@@ -569,6 +554,8 @@ dataone_met_cit <- dataone_met_cit %>%
 scythe_citations_new <- anti_join(scythe_cit, dataone_met_cit, by = c("article_id", "dataset_id")) %>% 
   na.omit()
 
+
+
 # scythe::write_citation_pairs(scythe_citations_new, 
 #                              path = paste0("./output/scythe_", date,"_citation_pairs.json"))
 ```
@@ -577,17 +564,39 @@ scythe_citations_new <- anti_join(scythe_cit, dataone_met_cit, by = c("article_i
 
 1)  Does the addition of the xDD digital library to the Scythe package improve the quality and scope of citations in the ADC?
 
--   How many unique citations were found in xDD and not in any of the other sources? xDD found `r nrow(unique_xdd)` unique citations not found in Scoupus, Springer, or PLOS digital libraries. \## new to DataOne Metric service (should be CrossRef & ORCID reports in `dataone_citations_reporter.csv`)
+    -   How many unique citations were found in xDD and not in any of the other sources? 
+
+```{r unique_citations_table, eval=TRUE, echo=FALSE}
+#| label: tbl-unique
+#| tbl-cap: "Number of citations only found within each source"
+#| tbl-colwidths: [25,25]
+
+knitr::kable(unique_citations,
+             col.names = c("Source", "Unique Citations"))
+``` 
+
+xDD found `r nrow(unique_xdd)` unique citations not found in Scoupus, Springer, or PLOS digital libraries. \## new to DataOne Metric service (should be CrossRef & ORCID reports in `dataone_citations_reporter.csv`)
 
 2)  Does increasing the number of sources we are searching result in more complete coverage (quality)?
 
--   Overlap in citation among sources
--   Species rarification curve inspired - start to get to a point where we can estimate the actual amount of citation out there. Dataset citations are rare enough the technique may not be applicable.
+    -   Overlap in citation among sources
+
+```{r overlap_results_table, eval=TRUE, echo=FALSE}
+#| label: tbl-overlap
+#| tbl-cap: "Percent overlap between Scythe sources"
+source_prct_overlap_2022_07_14 <- readr::read_csv("./output/scythe_2022-07-14_prct_overlap.csv")
+source_prct_overlap_2022_07_14$source <- c("PLOS", "Scopus", "Springer", "xDD")
+knitr::kable(source_prct_overlap_2022_07_14, 
+             col.names = c("Source", "Total Citations", "% in PLOS", "% in Scopus", "% in Springer", "% in xDD"), 
+             digits = 3)
+```
+
+    -   Species ratification curve inspired - start to get to a point where we can estimate the actual amount of citation out there. Dataset citations are rare enough the technique may not be applicable.
 
 3)  Does the prevalence of data citations differ among disciplines (enviro vs SS)?
 
--   Use ADC dicipline classifications
--   Dataset citations are rare, N of classifications varies widely, need to control for sampling biases <https://zenodo.org/record/4730857#.YoaQ2WDMKrM>
+    -   Use ADC discipline classifications
+    -   Dataset citations are rare, N of classifications varies widely, need to control for sampling biases <https://zenodo.org/record/4730857#.YoaQ2WDMKrM>
 
 4)  Total number of citations is extremely useful. Ground truth analysis - for a small number of datasets manually search through literature for citations.
 
@@ -595,7 +604,7 @@ scythe_citations_new <- anti_join(scythe_cit, dataone_met_cit, by = c("article_i
 
 ## Next Steps
 
--   Analysis by discipline
+    -   Analysis by discipline
 
 [Root of ADC discipline semantics annotations](https://bioportal.bioontology.org/ontologies/ADCAD/?p=classes&conceptid=root) Classes/ID is where to look for query specifics. "Here's an example SOLR query that looks for two of those disciplines: `https://cn.dataone.org/cn/v2/query/solr/?q=sem_annotation:*ADCAD_00077+OR+sem_annotation:*ADCAD_00005&fl=identifier,formatId,sem_annotation`" - Matt Need to list every single SS ID in query list, not set up to query umbrella SS ID just yet
 
