@@ -6,7 +6,6 @@ date: "`r Sys.Date()`"
 theme: cosmo 
 code-tools: true
 toc: true
-    
 ---
 
 ### Purpose
@@ -15,18 +14,33 @@ Run ADC DOIs through `scythe` & compare to known DataONE metrics citations. Know
 
 ### Questions
 
-1)  Does the addition of the [xDD](https://geodeepdive.org/) digital library to the [Scythe package])https://github.com/DataONEorg/scythe/tree/main) improve the quality and scope of citations in the ADC?
+1)  Does the addition of the [xDD](https://geodeepdive.org/) digital library to the [Scythe package](https://github.com/DataONEorg/scythe/tree/main) improve the quality and scope of citations in the ADC?
 
 2)  Does increasing the number of sources we are searching result in more complete coverage (quality)?
 
--   Overlap in citation among sources
--   Species rarification curve inspired - start to get to a point where we can estimate the actual amount of citation out there. Dataset citations are rare enough the technique may not be applicable.
+    -   Overlap in citation among sources
+
+    -   Species ratification curve inspired - start to get to a point where we can estimate the actual amount of citation out there. Dataset citations are rare enough the technique may not be applicable. Rarefaction.
+
+    > The calculation of species richness for a given number of samples is
+    > based on the rarefaction curve. The rarefaction curve is a plot of the
+    > number of species against the number of samples. This curve is created
+    > by randomly re-sampling the pool of N samples several times and then
+    > plotting the average number of species found on each sample. Generally,
+    > it initially grows rapidly (as the most common species are found) and
+    > then slightly flattens (as the rarest species remain to be sampled). [source](https://www.cd-genomics.com/microbioseq/rarefaction-curve-a-measure-of-species-richness-and-diversity.html)
+
+    *Would this be sampling the entireity of ADC DOIs?*
 
 3)  Does the prevalence of data citations differ among disciplines (enviro vs SS)?
 
--   Use ADC dicipline classifications
--   Dataset citations are rare, N of classifications varies widely, need to control for sampling biases <https://zenodo.org/record/4730857#.YoaQ2WDMKrM>
+    -   Use ADC dicipline classifications
 
+    -   Dataset citations are rare, N of classifications varies widely, need to control for sampling biases <https://zenodo.org/record/4730857#.YoaQ2WDMKrM>
+
+```{=html}
+<!-- -->
+```
 4)  Total number of citations is extremely useful. Ground truth analysis - for a small number of datasets manually search through literature for citations.
 
 5)  Do usage metrics (downloads and views) correlate well with citation metrics?
@@ -38,7 +52,7 @@ Run ADC DOIs through `scythe` & compare to known DataONE metrics citations. Know
 3)  Run all ADC dataset DOIs through `scythe` libraries
 4)  Review HTTP errors and rerun
 5)  Calculate citation source overlap
-5)  Compare citations from `scythe` to DataONE metrics
+6)  Compare citations from `scythe` to DataONE metrics
 
 ### Setup
 
@@ -76,8 +90,7 @@ devtools::install_github("dataoneorg/scythe@develop")
 
 #### 1. Retrieve all ADC citations with GET API request body
 
-metrics service production endpoint: <https://logproc-stage-ucsb-1.test.dataone.org/metrics>
-documentation: <https://app.swaggerhub.com/apis/nenuji/data-metrics/1.0.0.3>
+metrics service production endpoint: <https://logproc-stage-ucsb-1.test.dataone.org/metrics> documentation: <https://app.swaggerhub.com/apis/nenuji/data-metrics/1.0.0.3>
 
 ```{r get_request_citations}
 #| code-fold: true
@@ -286,7 +299,7 @@ job::job({
 }, title = paste0("xdd citation search ", Sys.time()))
 ```
 
-Springer's API query limits affected how we ran our search. We decided to break the list of ADC DOIs into < 5,000 DOI chunks and run each chunk manually through the API with 24hrs in between the last query and starting the next DOI chunk. We could have changed the base `scythe` function `citation_search_springer()` to slow down to accommodate both request limits, but this would substantially slow down the function and make smaller DOIs queries slow and cumbersome. 
+Springer's API query limits affected how we ran our search. We decided to break the list of ADC DOIs into \< 5,000 DOI chunks and run each chunk manually through the API with 24hrs in between the last query and starting the next DOI chunk. We could have changed the base `scythe` function `citation_search_springer()` to slow down to accommodate both request limits, but this would substantially slow down the function and make smaller DOIs queries slow and cumbersome.
 
 ```{r springer_search_throttled}
 #| code-fold: true
@@ -321,9 +334,9 @@ job::job({
 )
 ```
 
-#### 4. Dealing with API request errors 
+#### 4. Dealing with API request errors
 
-The `tryCatch()` functions in the above search `for` loops records errors produced from any API request. The corresponding DOIs can be aggregated and rerun through `scythe`. The code below does this. When running the DOIs with HTTP errors through Scopus a second time we discovered a small bug in the `scythe` code which was subsequently fixed. 
+The `tryCatch()` functions in the above search `for` loops records errors produced from any API request. The corresponding DOIs can be aggregated and rerun through `scythe`. The code below does this. When running the DOIs with HTTP errors through Scopus a second time we discovered a small bug in the `scythe` code which was subsequently fixed.
 
 ```{r run_failed_query_dois_again}
 #| code-fold: true
@@ -555,7 +568,7 @@ scythe_citations_new <- anti_join(scythe_cit, dataone_met_cit, by = c("article_i
 
 1)  Does the addition of the xDD digital library to the Scythe package improve the quality and scope of citations in the ADC?
 
--   How many unique citations were found in xDD and not in any of the other sources? xDD found `r nrow(unique_xdd)` unique citations not found in Scoupus, Springer, or PLOS digital libraries. ## new to DataOne Metric service (should be CrossRef & ORCID reports in `dataone_citations_reporter.csv`)
+-   How many unique citations were found in xDD and not in any of the other sources? xDD found `r nrow(unique_xdd)` unique citations not found in Scoupus, Springer, or PLOS digital libraries. \## new to DataOne Metric service (should be CrossRef & ORCID reports in `dataone_citations_reporter.csv`)
 
 2)  Does increasing the number of sources we are searching result in more complete coverage (quality)?
 
@@ -689,5 +702,3 @@ adc_disc_ADCAD <- adc_disc_new %>%
 # Save results
 # write.csv(adc_disc_ADCAD, "./output/ADC_ADCAD_disciplines.csv", row.names = F)
 ```
-
-
