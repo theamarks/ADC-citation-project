@@ -22,13 +22,7 @@ Run ADC DOIs through `scythe` & compare to known DataONE metrics citations. Know
 
     -   Species ratification curve inspired - start to get to a point where we can estimate the actual amount of citation out there. Dataset citations are rare enough the technique may not be applicable. Rarefaction.
 
-    > The calculation of species richness for a given number of samples is
-    > based on the rarefaction curve. The rarefaction curve is a plot of the
-    > number of species against the number of samples. This curve is created
-    > by randomly re-sampling the pool of N samples several times and then
-    > plotting the average number of species found on each sample. Generally,
-    > it initially grows rapidly (as the most common species are found) and
-    > then slightly flattens (as the rarest species remain to be sampled). [source](https://www.cd-genomics.com/microbioseq/rarefaction-curve-a-measure-of-species-richness-and-diversity.html)
+    > The calculation of species richness for a given number of samples is based on the rarefaction curve. The rarefaction curve is a plot of the number of species against the number of samples. This curve is created by randomly re-sampling the pool of N samples several times and then plotting the average number of species found on each sample. Generally, it initially grows rapidly (as the most common species are found) and then slightly flattens (as the rarest species remain to be sampled). [source](https://www.cd-genomics.com/microbioseq/rarefaction-curve-a-measure-of-species-richness-and-diversity.html)
 
     *Would this be sampling the entireity of ADC DOIs?*
 
@@ -38,9 +32,8 @@ Run ADC DOIs through `scythe` & compare to known DataONE metrics citations. Know
 
     -   Dataset citations are rare, N of classifications varies widely, need to control for sampling biases <https://zenodo.org/record/4730857#.YoaQ2WDMKrM>
 
-```{=html}
 <!-- -->
-```
+
 4)  Total number of citations is extremely useful. Ground truth analysis - for a small number of datasets manually search through literature for citations.
 
 5)  Do usage metrics (downloads and views) correlate well with citation metrics?
@@ -203,7 +196,7 @@ write.csv(solr_adc_result, file.path(output_directory,
 adc_all_dois <- c(solr_adc_result$id)
 ```
 
-APIs can have request rate limits. These specific rates are often found in the API documentation or the API response headers. If request rate limits are exceeded API queries will fail.
+APIs can have request rate limits. These specific rates are often found in the API documentation or the API response headers. If request rate limits are exceeded, API queries will fail.
 
 ```{r get_API_rate_limits}
 #| code-fold: true
@@ -227,7 +220,13 @@ curlGetHeaders(url)
 
 Run each library search in parallel in separate background jobs to keep console available to work with. By default the `job::job()` imports the global environment into the background job.
 
-**Important Note** `scythe::scythe_set_key()` is a wrapper for the `key_ring` package. An interactive password prompt is required to access the API keys stored in `key_ring`. This *does not work* within a background job environment; your keyring needs to be temporarily unlocked with `keyring::keyring_unlock("scythe", "your password")` replace `password` with your actual keyring password. Be careful not to save, commit, or push your personal keyring password.
+::: callout-note
+`scythe::scythe_set_key()` is a wrapper for the `key_ring` package. An interactive password prompt is required to access the API keys stored in `key_ring`. This *does not work* within a background job environment; your keyring needs to be temporarily unlocked with `keyring::keyring_unlock("scythe", "your password")` replace `password` with your actual keyring password.
+:::
+
+::: callout-warning
+Be careful not to save, commit, or push your personal keyring password.
+:::
 
 ```{r citation_searches_background_jobs}
 #| code-fold: true
