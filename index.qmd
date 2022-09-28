@@ -486,6 +486,7 @@ scythe_overlap_sum <- scythe_cit %>%
                                              citations_xdd)
   ) %>%
   select(1, 3:7)
+
 # Save summary table to output folder
 write.csv(scythe_overlap_sum,
           file.path(
@@ -497,8 +498,13 @@ write.csv(scythe_overlap_sum,
 
 ```{r overlap_results_table, eval=TRUE}
 #| code-fold: true
+#| label: tbl-overlap
+#| tbl-cap: "Percent overlap between Scythe sources"
 source_prct_overlap_2022_07_14 <- readr::read_csv("./output/scythe_2022-07-14_prct_overlap.csv")
-knitr::kable(source_prct_overlap_2022_07_14, caption = "Percent overlap between Scythe sources")
+source_prct_overlap_2022_07_14$source <- c("PLOS", "Scopus", "Springer", "xDD")
+knitr::kable(source_prct_overlap_2022_07_14, 
+             col.names = c("Source", "Total Citations", "% in PLOS", "% in Scopus", "% in Springer", "% in xDD"), 
+             digits = 3)
 ```
 
 #### 6. How many completely unique citations found in each source?
