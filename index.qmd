@@ -496,7 +496,6 @@ write.csv(scythe_overlap_sum,
           row.names = F)
 ```
 
-
 ### 6. How many completely unique citations found in each source?
 
 ```{r unique_citations_by_source, eval = TRUE}
@@ -539,7 +538,7 @@ unique_citations <- rbind(unique_plos, unique_scopus, unique_springer, unique_xd
 
 ### 7. Compare `scythe` results to DataOne Metrics citations
 
-`dataone_met_cit` came from the SOLR query, it has 626 observations. `dataone_cit_source ` came from Rushiraj with 2035 observations. I am still confused on the back end set up of how these citations are truely being generated. `dataone_cit_source` has the record of how citations entered the DataOne Metrics Service: `Crossref`, `Metrics Service Ingest`, and ORCID. I believe `Metrics Service Ingest` is previous `scythe` runs. Nonetheless, I can cross compare the `scythe` citation results with both DataONe metrics citation lists and look at the distribution of citation sources. 
+`dataone_met_cit` came from the SOLR query, it has 626 observations. `dataone_cit_source` came from Rushiraj with 2035 observations. I am still confused on the back end set up of how these citations are truely being generated. `dataone_cit_source` has the record of how citations entered the DataOne Metrics Service: `Crossref`, `Metrics Service Ingest`, and ORCID. I believe `Metrics Service Ingest` is previous `scythe` runs. Nonetheless, I can cross compare the `scythe` citation results with both DataONe metrics citation lists and look at the distribution of citation sources.
 
 ```{r new_scythe_citations, eval=TRUE}
 #| code-fold: true
@@ -577,7 +576,7 @@ scythe_cit_new2 <- anti_join(scythe_cit, dataone_cit_source, by = c("article_id"
 
 1)  Does the addition of the xDD digital library to the Scythe package improve the quality and scope of citations in the ADC?
 
-    -   How many unique citations were found in xDD and not in any of the other sources? 
+    -   How many unique citations were found in xDD and not in any of the other sources?
 
 ```{r unique_citations_table, eval=TRUE, echo=FALSE}
 #| label: tbl-unique
@@ -595,13 +594,11 @@ unique_sum_tbl$source <- c("PLOS", "Scopus", "Springer", "xDD", "Total")
 
 knitr::kable(unique_sum_tbl,
              col.names = c("Source", "Unique Citations"))
-``` 
+```
 
-xDD found `r nrow(unique_xdd)` unique citations not found in Scoupus, Springer, or PLOS digital libraries. \## new to DataOne Metric service (should be CrossRef & ORCID reports in `dataone_citations_reporter.csv`)
+xDD found `r nrow(unique_xdd)` unique citations not found in Scoupus, Springer, or PLOS digital libraries. The total number of unique citations returned by `scythe` is `r unique_sum_tbl[5,2]`. \## new to DataOne Metric service (should be CrossRef & ORCID reports in `dataone_citations_reporter.csv`)
 
 2)  Does increasing the number of sources we are searching result in more complete coverage (quality)?
-
-    -   Overlap in citation among sources
 
 ```{r overlap_results_table, eval=TRUE, echo=FALSE}
 #| label: tbl-overlap
@@ -613,7 +610,6 @@ knitr::kable(source_prct_overlap_2022_07_14,
              digits = 3)
 ```
 
-    -   Species ratification curve inspired - start to get to a point where we can estimate the actual amount of citation out there. Dataset citations are rare enough the technique may not be applicable.
 
 3)  Does the prevalence of data citations differ among disciplines (enviro vs SS)?
 
