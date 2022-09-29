@@ -531,18 +531,23 @@ unique_xdd <- citations_xdd %>%
   anti_join(citations_springer, by = c("article_id", "dataset_id")) %>% 
   filter(!is.na(article_id))
 
-unique_citations <- data.frame("source" = c("PLOS", "Scopus", "Springer", "xDD"),
-                               "unique_citations" = c(nrow(unique_plos), nrow(unique_scopus), 
-                                                      nrow(unique_springer), nrow(unique_xdd)))
+# combine unique citation tables
+unique_citations <- rbind(unique_plos, unique_scopus, unique_springer, unique_xdd)
+
 
 ```
 
 ### 7. Compare `scythe` results to DataOne Metrics citations
 
+`dataone_met_cit` came from the SOLR query, it has 626 observations. `dataone_cit_source ` came from Rushiraj with 2035 observations. I am still confused on the back end set up of how these citations are truely being generated. `dataone_cit_source` has the record of how citations entered the DataOne Metrics Service: `Crossref`, `Metrics Service Ingest`, and ORCID. I believe `Metrics Service Ingest` is previous `scythe` runs. Nonetheless, I can cross compare the `scythe` citation results with both DataONe metrics citation lists and look at the distribution of citation sources. 
+
 ```{r new_scythe_citations, eval=TRUE}
 #| code-fold: true
 dataone_met_cit <- readr::read_csv(file.path(output_directory, "dataone_metrics_cit_2022-07-08.csv"))
 scythe_cit <- readr::read_csv(file.path(output_directory, "scythe_2022-07-14_citations_all.csv"))
+dataone_cit_source <- readr::read_csv(file.path("data/dataone_citations_reporter.csv"))
+
+
 # source_id = 'Unique identifier to the source dataset / document / article that cited the target dataset '
 # target_id = 'Unique identifier to the target DATAONE dataset. This is the dataset that was cited.'
 dataone_met_cit <- dataone_met_cit %>% 
@@ -551,13 +556,21 @@ dataone_met_cit <- dataone_met_cit %>%
   select(article_id, dataset_id)
 
 # only show citations found by scythe that do not already appear in the DataOne Metrics service
-scythe_citations_new <- anti_join(scythe_cit, dataone_met_cit, by = c("article_id", "dataset_id")) %>% 
+scythe_cit_new1 <- anti_join(scythe_cit, dataone_met_cit, by = c("article_id", "dataset_id")) %>% 
   na.omit()
-
-
+# 897 new scythe citations 
 
 # scythe::write_citation_pairs(scythe_citations_new, 
 #                              path = paste0("./output/scythe_", date,"_citation_pairs.json"))
+
+# clean up dataone citation reporter csv. Remove extra ' from character strings
+dataone_cit_source <- as.data.frame(lapply(dataone_cit_source, gsub, pattern = "*'*", replacement = ""))
+dataone_cit_source %<>%
+  rename("article_id" = source_id, # rename dataone metrics citations columns to match scythe results
+         "dataset_id" = target_id)
+scythe_cit_new2 <- anti_join(scythe_cit, dataone_cit_source, by = c("article_id", "dataset_id")) %>% 
+  na.omit()
+# have 886 new scythe citations not found in dataone metrics
 ```
 
 ## Results
@@ -569,9 +582,18 @@ scythe_citations_new <- anti_join(scythe_cit, dataone_met_cit, by = c("article_i
 ```{r unique_citations_table, eval=TRUE, echo=FALSE}
 #| label: tbl-unique
 #| tbl-cap: "Number of citations only found within each source"
-#| tbl-colwidths: [25,25]
 
-knitr::kable(unique_citations,
+
+# summarize unique citations
+unique_sum <- unique_citations %>% 
+  group_by(source) %>% 
+  summarize(unique_cit = n())
+
+unique_sum_tbl <- rbind(unique_sum, data.frame(source = "Total", unique_cit = sum(unique_sum$unique_cit)))
+
+unique_sum_tbl$source <- c("PLOS", "Scopus", "Springer", "xDD", "Total")
+
+knitr::kable(unique_sum_tbl,
              col.names = c("Source", "Unique Citations"))
 ``` 
 
