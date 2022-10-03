@@ -79,7 +79,7 @@ library(purrr)
 devtools::install_github("dataoneorg/scythe@develop")
 ```
 
-## Analysis
+## Data Collection
 
 ### 1. Retrieve all ADC citations with GET API request body
 
@@ -409,6 +409,8 @@ write.csv(citations_xdd,
 
 ```
 
+## Analysis
+
 ### 5. Calculate citation source overlap
 
 We evaluated the redundancy in citations found among sources by matching citations between source search results. A citation is defined by the unique combination of `article_id` and `dataset_id`. Percent overlap is the percent of total citations found in a source also found in a second source.
@@ -624,7 +626,13 @@ knitr::kable(source_prct_overlap_2022_07_14,
 
     -   Analysis by discipline
 
-[Root of ADC discipline semantics annotations](https://bioportal.bioontology.org/ontologies/ADCAD/?p=classes&conceptid=root) Classes/ID is where to look for query specifics. "Here's an example SOLR query that looks for two of those disciplines: `https://cn.dataone.org/cn/v2/query/solr/?q=sem_annotation:*ADCAD_00077+OR+sem_annotation:*ADCAD_00005&fl=identifier,formatId,sem_annotation`" - Matt Need to list every single SS ID in query list, not set up to query umbrella SS ID just yet
+[Root of ADC discipline semantics annotations](https://bioportal.bioontology.org/ontologies/ADCAD/?p=classes&conceptid=root) Classes/ID is where to look for query specifics. "Here's an example SOLR query that looks for two of those disciplines:
+
+```{r}
+https://cn.dataone.org/cn/v2/query/solr/?q=sem_annotation:*ADCAD_00077+OR+sem_annotation:*ADCAD_00005&fl=identifier,formatId,sem_annotation
+``` 
+
+ - Matt Need to list every single SS ID in query list, not set up to query umbrella SS ID just yet
 
 ```{r discipline_semantics}
 #| code-fold: true
