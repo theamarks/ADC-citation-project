@@ -6,7 +6,11 @@ date: "`r Sys.Date()`"
 theme: cosmo 
 code-tools: true
 toc: true
+body-header: |
+    ![Logo image](ARC_Logo.png)
 ---
+
+
 
 ## Purpose
 
