@@ -409,7 +409,7 @@ write.csv(citations_xdd,
 
 ```
 
-## Analysis
+## Analysis / Results
 
 ### 5. Calculate citation source overlap
 
@@ -569,7 +569,7 @@ knitr::kable(do_cit_source_sum,
              col.names = c("Reporter", "Number of Citations"))
 ```
 
-```{r scythe-already-in-dataone}
+```{r scythe-already-in-dataone, eval=TRUE}
 #| code-fold: true
 #| label: tbl-scythe-do-overlap
 #| tbl-cap: "Citations found by scythe that were previously recorded in DataOne Metrics Service"
@@ -591,10 +591,12 @@ knitr::kable(scythe_in_do_sum,
              col.names = c("Source", "Number of Citations"))
 ```
 
-`scythe` found `r nrow(scythe_cit_new)` new citations not currently 
+`scythe` found `r nrow(scythe_cit_new)` new citations not currently in the DataOne Metrics Service. However, Table x and y indicate that citaitons found by previous scythe runs (`Metrics Service Injest`) are not being found by the current scythe run. Is `scythe` the only source for `Metrics Service Injest`?
 
+*This could be a figure - proportion columns*
 
-## Results
+*Query CrossRef to see if scythe results were reported*
+
 
 1)  Does the addition of the xDD digital library to the Scythe package improve the quality and scope of citations in the ADC?
 
