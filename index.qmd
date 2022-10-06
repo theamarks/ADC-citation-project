@@ -6,11 +6,10 @@ date: "`r Sys.Date()`"
 theme: cosmo 
 code-tools: true
 toc: true
+number-sections: true
 body-header: |
     ![Logo image](ARC_Logo.png)
 ---
-
-
 
 ## Purpose
 
@@ -18,9 +17,7 @@ Run ADC DOIs through `scythe` & compare to known DataONE metrics citations. Know
 
 ## Questions
 
-1)  Does the addition of the [xDD](https://geodeepdive.org/) digital library to the [Scythe package](https://github.com/DataONEorg/scythe/tree/main) improve the quality and scope of citations in the ADC?
-
-2)  Does increasing the number of sources we are searching result in more complete coverage (quality)?
+1)  Does the addition of the [xDD](https://geodeepdive.org/) digital library to the [Scythe package](https://github.com/DataONEorg/scythe/tree/main) improve the quality and scope of citations in the ADC? Does increasing the number of sources we are searching result in more complete coverage (quality)?
 
     -   Overlap in citation among sources
 
@@ -30,7 +27,7 @@ Run ADC DOIs through `scythe` & compare to known DataONE metrics citations. Know
 
     *Would this be sampling the entireity of ADC DOIs?*
 
-3)  Does the prevalence of data citations differ among disciplines (enviro vs SS)?
+2)  Does the prevalence of data citations differ among disciplines (enviro vs SS)?
 
     -   Use ADC dicipline classifications
 
@@ -44,12 +41,17 @@ Run ADC DOIs through `scythe` & compare to known DataONE metrics citations. Know
 
 ## Methods Overview
 
-1)  Gather existing/known ADC dataset citations picked up by the automated DataONE metrics API
-2)  Get a list of all ADC dataset DOIs
-3)  Run all ADC dataset DOIs through `scythe` libraries
-4)  Review HTTP errors and rerun
-5)  Calculate citation source overlap
-6)  Compare citations from `scythe` to DataONE metrics
+-   Gather existing/known ADC dataset citations picked up by the automated DataONE metrics API
+
+-   Get a list of all ADC dataset DOIs
+
+-   Run all ADC dataset DOIs through `scythe` libraries
+
+-   Review HTTP errors and rerun
+
+-   Calculate citation source overlap
+
+-   Compare citations from `scythe` to DataONE metrics
 
 ## Setup
 
@@ -85,7 +87,7 @@ devtools::install_github("dataoneorg/scythe@develop")
 
 ## Data Collection
 
-### 1. Retrieve all ADC citations with GET API request body
+### Retrieve all ADC citations with GET API request body
 
 metrics service production endpoint: <https://logproc-stage-ucsb-1.test.dataone.org/metrics> documentation: <https://app.swaggerhub.com/apis/nenuji/data-metrics/1.0.0.3>
 
@@ -163,7 +165,7 @@ write_csv(dataone_cit, file.path(output_directory,
                                  paste0("dataone_metrics_cit_", Sys.Date(),".csv")))
 ```
 
-### 2. Get all ADC DOIs from SOLR query
+### Get all ADC DOIs from SOLR query
 
 DataOne metrics API can only provide data package DOIs with citations, and can not provide a comprehensive list of all data package DOIs contained within the ADC. To search through all the repository metadata we query the DataONE search index (Apache SOLR search engine). SOLR is the same underlying mechanism that DataONE uses in the online tool and can create complex logical query conditions.
 
@@ -192,7 +194,7 @@ write.csv(solr_adc_result, file.path(output_directory,
                                      paste0("solr_adc_", Sys.Date(), ".csv")))
 ```
 
-### 3. Run all ADC dataset DOIs through `scythe` libraries
+### Run all ADC dataset DOIs through `scythe` libraries
 
 ```{r All_ADC_DOIs}
 #| code-fold: true
@@ -337,7 +339,7 @@ job::job({
 )
 ```
 
-### 4. Dealing with API request errors
+### Dealing with API request errors
 
 The `tryCatch()` functions in the above search `for` loops records errors produced from any API request. The corresponding DOIs can be aggregated and rerun through `scythe`. The code below does this. When running the DOIs with HTTP errors through Scopus a second time we discovered a small bug in the `scythe` code which was subsequently fixed.
 
@@ -415,7 +417,9 @@ write.csv(citations_xdd,
 
 ## Analysis / Results
 
-### 5. Calculate citation source overlap
+### 1. Calculate citation source overlap
+
+*Does the addition of the [xDD](https://geodeepdive.org/) digital library to the [Scythe package](https://github.com/DataONEorg/scythe/tree/main) improve the quality and scope of citations in the ADC? Does increaseing the number of sources we are searching result in more complete coverage (quality)?*
 
 We evaluated the redundancy in citations found among sources by matching citations between source search results. A citation is defined by the unique combination of `article_id` and `dataset_id`. Percent overlap is the percent of total citations found in a source also found in a second source.
 
@@ -502,7 +506,7 @@ write.csv(scythe_overlap_sum,
           row.names = F)
 ```
 
-### 6. How many completely unique citations found in each source?
+#### How many completely unique citations found in each source?
 
 ```{r unique_citations_by_source, eval = TRUE}
 #| code-fold: true
@@ -542,11 +546,11 @@ unique_citations <- rbind(unique_plos, unique_scopus, unique_springer, unique_xd
 
 ```
 
-### 7. Compare `scythe` results to DataOne Metrics citations
+### Compare `scythe` results to DataOne Metrics citations
 
-`dataone_met_cit` came from the SOLR query, it has 626 observations. `dataone_cit_source` came from Rushiraj with 2035 observations. I am still confused on the back end set up of how these citations are truely being generated. `dataone_cit_source` has the record of how citations entered the DataOne Metrics Service: `Crossref`, `Metrics Service Ingest`, and ORCID. I believe `Metrics Service Ingest` is previous `scythe` runs. Nonetheless, I can cross compare the `scythe` citation results with both DataONe metrics citation lists and look at the distribution of citation sources.
+`dataone_cit_source` came from Rushiraj with 2035 observations. I am still confused on the back end set up of how these citations are truely being generated. `dataone_cit_source` has the record of how citations entered the DataOne Metrics Service: `Crossref`, `Metrics Service Ingest`, and ORCID. `Metrics Service Ingest` is previous `scythe` runs. I can cross compare the `scythe` citation results with both DataONe metrics citation lists and look at the distribution of citation sources.
 
-```{r new_scythe_citations, eval=TRUE}
+```{r new_scythe_citations, eval = T}
 #| code-fold: true
 #| tbl-cap: "Dataset Citations in DataOne Metrics Service - Citation Reporting Source"
 #| label: tbl-dataone-metric-report
@@ -565,6 +569,9 @@ dataone_cit_source %<>%
          "dataset_id" = target_id) %>% 
   mutate(reporter = sub("^http.*","ORCiD", dataone_cit_source$reporter))
 
+do_cit_total <- data_frame("Reporter" = "Total",
+                           "Number of Citations" = n(dataone_cit_source$reporter))
+
 do_cit_source_sum <- dataone_cit_source %>% 
   group_by(reporter) %>% 
   summarise(num_cit = n())
@@ -573,7 +580,7 @@ knitr::kable(do_cit_source_sum,
              col.names = c("Reporter", "Number of Citations"))
 ```
 
-```{r scythe-already-in-dataone, eval=TRUE}
+```{r scythe-already-in-dataone, eval=T}
 #| code-fold: true
 #| label: tbl-scythe-do-overlap
 #| tbl-cap: "Citations found by scythe that were previously recorded in DataOne Metrics Service"
@@ -595,12 +602,15 @@ knitr::kable(scythe_in_do_sum,
              col.names = c("Source", "Number of Citations"))
 ```
 
-`scythe` found `r nrow(scythe_cit_new)` new citations not currently in the DataOne Metrics Service. However, Table x and y indicate that citaitons found by previous scythe runs (`Metrics Service Injest`) are not being found by the current scythe run. Is `scythe` the only source for `Metrics Service Injest`?
+`scythe` found `r nrow(scythe_cit_new)` new citations not currently in the DataOne Metrics Service. However, Table x and y indicate that citaitons found by previous scythe runs (`Metrics Service Injest`) are not being found by the current scythe run. Why are they missing? Do results from DataCite query overwrite previous `Metrics Service Ingest` observations? MIs `scythe` the only source for `Metrics Service Injest`?
 
 *This could be a figure - proportion columns*
 
-*Query CrossRef to see if scythe results were reported*
+```{r}
 
+```
+
+*Query CrossRef to see if scythe results were reported*
 
 1)  Does the addition of the xDD digital library to the Scythe package improve the quality and scope of citations in the ADC?
 
@@ -638,7 +648,6 @@ knitr::kable(source_prct_overlap_2022_07_14,
              digits = 3)
 ```
 
-
 3)  Does the prevalence of data citations differ among disciplines (enviro vs SS)?
 
     -   Use ADC discipline classifications
@@ -656,9 +665,9 @@ knitr::kable(source_prct_overlap_2022_07_14,
 
 ```{r}
 https://cn.dataone.org/cn/v2/query/solr/?q=sem_annotation:*ADCAD_00077+OR+sem_annotation:*ADCAD_00005&fl=identifier,formatId,sem_annotation
-``` 
+```
 
- - Matt Need to list every single SS ID in query list, not set up to query umbrella SS ID just yet
+-   Matt Need to list every single SS ID in query list, not set up to query umbrella SS ID just yet
 
 ```{r discipline_semantics}
 #| code-fold: true
