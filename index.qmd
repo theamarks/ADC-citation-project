@@ -1,6 +1,6 @@
 ---
 title: "Searching for Elusive Arctic Dataset Citations"
-subtitle: "Arctice Data Center Data Fellowship Project 2022"
+subtitle: "Arctice Data Center - Data Fellowship Project 2022"
 author: "Althea Marks"
 date: "`r Sys.Date()`"
 theme: cosmo 
@@ -569,12 +569,13 @@ dataone_cit_source %<>%
          "dataset_id" = target_id) %>% 
   mutate(reporter = sub("^http.*","ORCiD", dataone_cit_source$reporter))
 
-do_cit_total <- data_frame("Reporter" = "Total",
-                           "Number of Citations" = n(dataone_cit_source$reporter))
+do_cit_total <- data_frame("reporter" = "Total",
+                           "num_cit" = length(dataone_cit_source$reporter))
 
 do_cit_source_sum <- dataone_cit_source %>% 
   group_by(reporter) %>% 
-  summarise(num_cit = n())
+  summarise(num_cit = n()) %>% 
+  rbind(do_cit_total)
 
 knitr::kable(do_cit_source_sum,
              col.names = c("Reporter", "Number of Citations"))
