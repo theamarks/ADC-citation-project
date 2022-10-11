@@ -79,11 +79,13 @@ library(magrittr)
 library(readr)
 library(stringr)
 library(purrr)
+library(ggplot2)
 # library(scythe) # published version of package
 
 # install development version of scythe package with added xdd library
 devtools::install_github("dataoneorg/scythe@develop")
 ```
+
 
 ## Data Collection
 
@@ -552,8 +554,8 @@ unique_citations <- rbind(unique_plos, unique_scopus, unique_springer, unique_xd
 
 ```{r new_scythe_citations, eval = T}
 #| code-fold: true
-#| tbl-cap: "Dataset Citations in DataOne Metrics Service - Citation Reporting Source"
-#| label: tbl-dataone-metric-report
+#| fig-cap: "Dataset Citations in DataOne Metrics Service - Citation Reporting Source"
+#| label: fig-dataone-metric-report
 
 
 dataone_cit_source <- readr::read_csv(file.path("data/dataone_citations_reporter.csv"))
@@ -569,16 +571,24 @@ dataone_cit_source %<>%
          "dataset_id" = target_id) %>% 
   mutate(reporter = sub("^http.*","ORCiD", dataone_cit_source$reporter))
 
-do_cit_total <- data_frame("reporter" = "Total",
-                           "num_cit" = length(dataone_cit_source$reporter))
-
 do_cit_source_sum <- dataone_cit_source %>% 
   group_by(reporter) %>% 
-  summarise(num_cit = n()) %>% 
-  rbind(do_cit_total)
+  summarise(num_cit = n()) 
 
-knitr::kable(do_cit_source_sum,
-             col.names = c("Reporter", "Number of Citations"))
+do_cit_source_fig <- do_cit_source_sum %>% 
+  ggplot(aes(reporter, num_cit)) +
+  geom_col() +
+  coord_flip() +
+  theme_minimal() +
+  theme(panel.grid.major.y = element_blank()) +
+  labs(y = "Citation Reporter Source",
+       x = "Number of Citations",
+       title = "Dataset Citation Reporting Sources",
+       subtitle = "From the DataOne Arctic Data Center Metrics Service",
+       caption = "Total citations count: 2035")
+
+do_cit_source_fig
+
 ```
 
 ```{r scythe-already-in-dataone, eval=T}
