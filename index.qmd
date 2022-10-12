@@ -7,9 +7,12 @@ theme: cosmo
 code-tools: true
 toc: true
 number-sections: true
-body-header: |
-    ![Logo image](ARC_Logo.png)
+format: 
+  html: 
+    self-contained: true
 ---
+
+
 
 ## Purpose
 
@@ -86,6 +89,11 @@ library(ggplot2)
 devtools::install_github("dataoneorg/scythe@develop")
 ```
 
+```{r, echo=FALSE}
+htmltools::img(src = knitr::image_uri("ADC_Logo.png"), 
+               alt = 'logo', 
+               style = 'position:absolute; top:0; left:0; padding:10px;')
+```
 
 ## Data Collection
 
@@ -599,7 +607,7 @@ knitr::kable(unique_sum_tbl,
              col.names = c("Source", "Unique Citations"))
 ```
 
-xDD found `r nrow(unique_xdd)` unique citations not found in Scoupus, Springer, or PLOS digital libraries. The total number of unique citations returned by `scythe` is `r unique_sum_tbl[5,2]`. \## new to DataOne Metric service (should be CrossRef & ORCID reports in `dataone_citations_reporter.csv`)
+xDD found `r nrow(unique_xdd)` unique citations not found in Scoupus, Springer, or PLOS digital libraries. The total number of unique citations returned by `scythe` is `r unique_sum_tbl[5,2]`. 
 
 ### How Many Citations Found By `scythe` Are Already Known to DataOne Metrics Service?
 
@@ -633,7 +641,8 @@ do_cit_source_fig <- do_cit_source_sum %>%
   geom_col() +
   coord_flip() +
   theme_minimal() +
-  theme(panel.grid.major.y = element_blank()) +
+  theme(panel.grid.major.y = element_blank(),
+        axis.text.x=element_blank()) +
   scale_y_continuous(limits = c(NA, 1300)) +
   geom_text(aes(label = num_cit), hjust = -0.5) +
   labs(x = "",
