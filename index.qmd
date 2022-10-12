@@ -419,7 +419,7 @@ write.csv(citations_xdd,
 
 ## Analysis / Results
 
-### Addition of xDD Improve Quality & Scope of ADC dataset Citations?
+### Does Addition of xDD Improve Quality & Scope of ADC dataset Citations?
 
 *Does increasing the number of sources we are searching result in more complete coverage/quality?*
 
@@ -458,13 +458,14 @@ knitr::kable(scythe_sum,
              col.names = c("Source", "Number of Citations"))
 ```
 
-#### How many completely unique citations found in each source?
+#### What is the Overlap in Citations Found Among Sources?
 
-We evaluated the redundancy in citations found among sources by matching citations between source search results. A citation is defined by the unique combination of `article_id` and `dataset_id`. Percent overlap is the percent of total citations found in a source also found in a second source.
+We evaluated the redundancy in dataset citations found among sources by matching citations between source search results. A citation is defined by the unique combination of `article_id` and `dataset_id`. Percent overlap is the percent of total citations found in a source also found in a second source.
 
 ```{r source_overlap}
 #| code-fold: true
 
+# 
 # match article_id and dataset_id columns among results
 overlap_plos_scopus <-
   inner_join(citations_plos,
@@ -534,6 +535,16 @@ write.csv(scythe_overlap_sum,
 ```
 
 
+```{r prct_overlap_table, eval=TRUE, echo=FALSE}
+#| label: tbl-overlap
+#| tbl-cap: "Percent overlap between Scythe sources"
+source_prct_overlap_2022_07_14 <- readr::read_csv("./output/scythe_2022-07-14_prct_overlap.csv")
+source_prct_overlap_2022_07_14$source <- c("PLOS", "Scopus", "Springer", "xDD")
+knitr::kable(source_prct_overlap_2022_07_14, 
+             col.names = c("Source", "Total Citations", "% in PLOS", "% in Scopus", "% in Springer", "% in xDD"), 
+             digits = 3)
+```
+
 ```{r unique_citations_by_source, eval = TRUE}
 #| code-fold: true
 
@@ -589,15 +600,7 @@ xDD found `r nrow(unique_xdd)` unique citations not found in Scoupus, Springer, 
 
 2)  Does increasing the number of sources we are searching result in more complete coverage (quality)?
 
-```{r overlap_results_table, eval=TRUE, echo=FALSE}
-#| label: tbl-overlap
-#| tbl-cap: "Percent overlap between Scythe sources"
-source_prct_overlap_2022_07_14 <- readr::read_csv("./output/scythe_2022-07-14_prct_overlap.csv")
-source_prct_overlap_2022_07_14$source <- c("PLOS", "Scopus", "Springer", "xDD")
-knitr::kable(source_prct_overlap_2022_07_14, 
-             col.names = c("Source", "Total Citations", "% in PLOS", "% in Scopus", "% in Springer", "% in xDD"), 
-             digits = 3)
-```
+
 
 ### Compare `scythe` results to DataOne Metrics citations
 
