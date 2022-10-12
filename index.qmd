@@ -3,20 +3,20 @@ title: "Searching for Elusive Arctic Dataset Citations"
 subtitle: "Arctice Data Center - Data Fellowship Project 2022"
 author: "Althea Marks"
 date: "`r Sys.Date()`"
-theme: cosmo 
-code-tools: true
-toc: true
-number-sections: true
 format: 
   html: 
     self-contained: true
+    number-sections: true
+    toc: true
+    code-tools: true
+    theme: cosmo 
 ---
 
 
 
 ## Purpose
 
-Run ADC DOIs through `scythe` & compare to known DataONE metrics citations. Known ADC citations have mixed origins including DataCite, pervious `scythe` runs, and mannual additions via the ADC UI.
+Run ADC DOIs through `scythe` & compare to known DataONE metrics citations. Known ADC citations have mixed origins including DataCite, previous `scythe` runs, and manual additions via the ADC UI.
 
 ## Questions
 
@@ -83,6 +83,7 @@ library(readr)
 library(stringr)
 library(purrr)
 library(ggplot2)
+library(htmltools)
 # library(scythe) # published version of package
 
 # install development version of scythe package with added xdd library
