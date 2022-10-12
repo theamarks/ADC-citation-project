@@ -534,6 +534,7 @@ write.csv(scythe_overlap_sum,
           row.names = F)
 ```
 
+*Think about better graphic here. Possibly proportional Ven diagram* https://cran.r-project.org/web/packages/eulerr/vignettes/venn-diagrams.html
 
 ```{r prct_overlap_table, eval=TRUE, echo=FALSE}
 #| label: tbl-overlap
@@ -544,6 +545,8 @@ knitr::kable(source_prct_overlap_2022_07_14,
              col.names = c("Source", "Total Citations", "% in PLOS", "% in Scopus", "% in Springer", "% in xDD"), 
              digits = 3)
 ```
+
+#### How Many Dataset Citations Are Unique to Each Source?
 
 ```{r unique_citations_by_source, eval = TRUE}
 #| code-fold: true
@@ -598,11 +601,7 @@ knitr::kable(unique_sum_tbl,
 
 xDD found `r nrow(unique_xdd)` unique citations not found in Scoupus, Springer, or PLOS digital libraries. The total number of unique citations returned by `scythe` is `r unique_sum_tbl[5,2]`. \## new to DataOne Metric service (should be CrossRef & ORCID reports in `dataone_citations_reporter.csv`)
 
-2)  Does increasing the number of sources we are searching result in more complete coverage (quality)?
-
-
-
-### Compare `scythe` results to DataOne Metrics citations
+### How Many Citations Found By `scythe` Are Already Known to DataOne Metrics Service?
 
 `dataone_cit_source` came from Rushiraj with 2035 observations. I am still confused on the back end set up of how these citations are truely being generated. `dataone_cit_source` has the record of how citations entered the DataOne Metrics Service: `Crossref`, `Metrics Service Ingest`, and ORCID. `Metrics Service Ingest` is previous `scythe` runs. I can cross compare the `scythe` citation results with both DataONe metrics citation lists and look at the distribution of citation sources.
 
@@ -635,7 +634,9 @@ do_cit_source_fig <- do_cit_source_sum %>%
   coord_flip() +
   theme_minimal() +
   theme(panel.grid.major.y = element_blank()) +
-  labs(x = "Citation Reporter Source",
+  scale_y_continuous(limits = c(NA, 1300)) +
+  geom_text(aes(label = num_cit), hjust = -0.5) +
+  labs(x = "",
        y = "Number of Citations",
        caption = "Total citations count: 2035")
 
