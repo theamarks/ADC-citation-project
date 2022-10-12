@@ -419,12 +419,14 @@ write.csv(citations_xdd,
 
 ## Analysis / Results
 
-### 1. Addition of xDD Improve Quality & Scope of ADC dataset Citations?
+### Addition of xDD Improve Quality & Scope of ADC dataset Citations?
 
-*Does the addition of the [xDD](https://geodeepdive.org/) digital library to the [Scythe package](https://github.com/DataONEorg/scythe/tree/main) improve the quality and scope of citations in the ADC? Does increasing the number of sources we are searching result in more complete coverage (quality)?*
+*Does increasing the number of sources we are searching result in more complete coverage/quality?*
 
 ```{r raw_scythe_resutls, eval=T}
 #| code-fold: true
+#| label: tbl-raw
+#| tbl-cap: "Raw Results from Scythe Search of ADC DOIs"
 # Read in saved data files
 citations_plos <- readr::read_csv(file.path(output_directory, "scythe_2022-07-14_plos.csv"))
 citations_scopus <- readr::read_csv(file.path(output_directory, "scythe_2022-07-14_scopus.csv"))
@@ -456,17 +458,12 @@ knitr::kable(scythe_sum,
              col.names = c("Source", "Number of Citations"))
 ```
 
-
-
+#### How many completely unique citations found in each source?
 
 We evaluated the redundancy in citations found among sources by matching citations between source search results. A citation is defined by the unique combination of `article_id` and `dataset_id`. Percent overlap is the percent of total citations found in a source also found in a second source.
 
 ```{r source_overlap}
 #| code-fold: true
-
-scythe_sum <- scythe_cit %>%
-  group_by(source) %>%
-  summarise("total_citations_found" = n())
 
 # match article_id and dataset_id columns among results
 overlap_plos_scopus <-
@@ -536,7 +533,6 @@ write.csv(scythe_overlap_sum,
           row.names = F)
 ```
 
-#### How many completely unique citations found in each source?
 
 ```{r unique_citations_by_source, eval = TRUE}
 #| code-fold: true
