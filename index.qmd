@@ -554,7 +554,7 @@ unique_citations <- rbind(unique_plos, unique_scopus, unique_springer, unique_xd
 
 ```{r new_scythe_citations, eval = T}
 #| code-fold: true
-#| fig-cap: "Dataset Citations in DataOne Metrics Service - Citation Reporting Source"
+#| fig-cap: "Dataset Citation Reporting Sources From the DataOne Arctic Data Center Metrics Service"
 #| label: fig-dataone-metric-report
 
 
@@ -581,10 +581,8 @@ do_cit_source_fig <- do_cit_source_sum %>%
   coord_flip() +
   theme_minimal() +
   theme(panel.grid.major.y = element_blank()) +
-  labs(y = "Citation Reporter Source",
-       x = "Number of Citations",
-       title = "Dataset Citation Reporting Sources",
-       subtitle = "From the DataOne Arctic Data Center Metrics Service",
+  labs(x = "Citation Reporter Source",
+       y = "Number of Citations",
        caption = "Total citations count: 2035")
 
 do_cit_source_fig
