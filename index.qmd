@@ -5,11 +5,16 @@ author: "Althea Marks"
 date: "`r Sys.Date()`"
 format: 
   html: 
-    self-contained: true
     number-sections: true
     toc: true
     code-tools: true
     theme: cosmo 
+    self-contained: true
+title-block-banner: true
+title-slide-attributes: 
+  data-background-image: ADC_Logo.png
+  data-background-size: 15%
+  data-background-position: 2% 2%
 ---
 
 
@@ -88,12 +93,6 @@ library(htmltools)
 
 # install development version of scythe package with added xdd library
 devtools::install_github("dataoneorg/scythe@develop")
-```
-
-```{r, echo=FALSE}
-htmltools::img(src = knitr::image_uri("ADC_Logo.png"), 
-               alt = 'logo', 
-               style = 'position:absolute; top:0; left:0; padding:10px;')
 ```
 
 ## Data Collection
