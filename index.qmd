@@ -419,14 +419,18 @@ write.csv(citations_xdd,
 
 ## Analysis / Results
 
-### 1. Calculate citation source overlap
+### 1. Addition of xDD Improve Quality & Scope of ADC dataset Citations?
 
-*Does the addition of the [xDD](https://geodeepdive.org/) digital library to the [Scythe package](https://github.com/DataONEorg/scythe/tree/main) improve the quality and scope of citations in the ADC? Does increaseing the number of sources we are searching result in more complete coverage (quality)?*
+*Does the addition of the [xDD](https://geodeepdive.org/) digital library to the [Scythe package](https://github.com/DataONEorg/scythe/tree/main) improve the quality and scope of citations in the ADC? Does increasing the number of sources we are searching result in more complete coverage (quality)?*
 
-We evaluated the redundancy in citations found among sources by matching citations between source search results. A citation is defined by the unique combination of `article_id` and `dataset_id`. Percent overlap is the percent of total citations found in a source also found in a second source.
-
-```{r source_overlap}
+```{r raw_scythe_resutls, eval=T}
 #| code-fold: true
+# Read in saved data files
+citations_plos <- readr::read_csv(file.path(output_directory, "scythe_2022-07-14_plos.csv"))
+citations_scopus <- readr::read_csv(file.path(output_directory, "scythe_2022-07-14_scopus.csv"))
+citations_springer <- readr::read_csv(file.path(output_directory, "scythe_2022-07-14_springer.csv"))
+citations_xdd <- readr::read_csv(file.path(output_directory, "scythe_2022-07-14_xdd.csv"))
+
 scythe_cit <-
   rbind(citations_scopus,
         citations_springer,
@@ -434,7 +438,31 @@ scythe_cit <-
         citations_xdd) %>%
   filter(!is.na(article_id)) # remove NA/error observations
 
-write_csv(scythe_cit, file.path(output_directory, paste0("scythe_", date, "_citations_all.csv")))
+# write_csv(scythe_cit, file.path(output_directory, paste0("scythe_", date, "_citations_all.csv")))
+
+# create mini dataframe to populate total citations in summary table
+scythe_total <- tibble("source" = "Total",
+                       "num_cit" = length(scythe_cit$dataset_id))
+  
+# summary table + cheater total row
+scythe_sum <- scythe_cit %>% 
+  group_by(source) %>% 
+  summarise("num_cit" = length(source)) %>% 
+  rbind(scythe_total)
+
+scythe_sum$source <- c("PLOS", "Scopus", "Springer", "xDD", "Total")
+
+knitr::kable(scythe_sum, 
+             col.names = c("Source", "Number of Citations"))
+```
+
+
+
+
+We evaluated the redundancy in citations found among sources by matching citations between source search results. A citation is defined by the unique combination of `article_id` and `dataset_id`. Percent overlap is the percent of total citations found in a source also found in a second source.
+
+```{r source_overlap}
+#| code-fold: true
 
 scythe_sum <- scythe_cit %>%
   group_by(source) %>%
@@ -513,11 +541,6 @@ write.csv(scythe_overlap_sum,
 ```{r unique_citations_by_source, eval = TRUE}
 #| code-fold: true
 
-citations_plos <- readr::read_csv(file.path(output_directory, "scythe_2022-07-14_plos.csv"))
-citations_scopus <- readr::read_csv(file.path(output_directory, "scythe_2022-07-14_scopus.csv"))
-citations_springer <- readr::read_csv(file.path(output_directory, "scythe_2022-07-14_springer.csv"))
-citations_xdd <- readr::read_csv(file.path(output_directory, "scythe_2022-07-14_xdd.csv"))
-
 unique_plos <- citations_plos %>% 
   anti_join(citations_scopus, by = c("article_id", "dataset_id")) %>% 
   anti_join(citations_springer, by = c("article_id", "dataset_id")) %>% 
@@ -546,6 +569,38 @@ unique_xdd <- citations_xdd %>%
 unique_citations <- rbind(unique_plos, unique_scopus, unique_springer, unique_xdd)
 
 
+```
+
+```{r unique_citations_table, eval=TRUE, echo=FALSE}
+#| label: tbl-unique
+#| tbl-cap: "Number of citations only found within each source"
+
+
+# summarize unique citations
+unique_sum <- unique_citations %>% 
+  group_by(source) %>% 
+  summarize(unique_cit = n())
+
+unique_sum_tbl <- rbind(unique_sum, data.frame(source = "Total", unique_cit = sum(unique_sum$unique_cit)))
+
+unique_sum_tbl$source <- c("PLOS", "Scopus", "Springer", "xDD", "Total")
+
+knitr::kable(unique_sum_tbl,
+             col.names = c("Source", "Unique Citations"))
+```
+
+xDD found `r nrow(unique_xdd)` unique citations not found in Scoupus, Springer, or PLOS digital libraries. The total number of unique citations returned by `scythe` is `r unique_sum_tbl[5,2]`. \## new to DataOne Metric service (should be CrossRef & ORCID reports in `dataone_citations_reporter.csv`)
+
+2)  Does increasing the number of sources we are searching result in more complete coverage (quality)?
+
+```{r overlap_results_table, eval=TRUE, echo=FALSE}
+#| label: tbl-overlap
+#| tbl-cap: "Percent overlap between Scythe sources"
+source_prct_overlap_2022_07_14 <- readr::read_csv("./output/scythe_2022-07-14_prct_overlap.csv")
+source_prct_overlap_2022_07_14$source <- c("PLOS", "Scopus", "Springer", "xDD")
+knitr::kable(source_prct_overlap_2022_07_14, 
+             col.names = c("Source", "Total Citations", "% in PLOS", "% in Scopus", "% in Springer", "% in xDD"), 
+             digits = 3)
 ```
 
 ### Compare `scythe` results to DataOne Metrics citations
@@ -621,41 +676,8 @@ knitr::kable(scythe_in_do_sum,
 
 *Query CrossRef to see if scythe results were reported*
 
-1)  Does the addition of the xDD digital library to the Scythe package improve the quality and scope of citations in the ADC?
-
-    -   How many unique citations were found in xDD and not in any of the other sources?
-
-```{r unique_citations_table, eval=TRUE, echo=FALSE}
-#| label: tbl-unique
-#| tbl-cap: "Number of citations only found within each source"
 
 
-# summarize unique citations
-unique_sum <- unique_citations %>% 
-  group_by(source) %>% 
-  summarize(unique_cit = n())
-
-unique_sum_tbl <- rbind(unique_sum, data.frame(source = "Total", unique_cit = sum(unique_sum$unique_cit)))
-
-unique_sum_tbl$source <- c("PLOS", "Scopus", "Springer", "xDD", "Total")
-
-knitr::kable(unique_sum_tbl,
-             col.names = c("Source", "Unique Citations"))
-```
-
-xDD found `r nrow(unique_xdd)` unique citations not found in Scoupus, Springer, or PLOS digital libraries. The total number of unique citations returned by `scythe` is `r unique_sum_tbl[5,2]`. \## new to DataOne Metric service (should be CrossRef & ORCID reports in `dataone_citations_reporter.csv`)
-
-2)  Does increasing the number of sources we are searching result in more complete coverage (quality)?
-
-```{r overlap_results_table, eval=TRUE, echo=FALSE}
-#| label: tbl-overlap
-#| tbl-cap: "Percent overlap between Scythe sources"
-source_prct_overlap_2022_07_14 <- readr::read_csv("./output/scythe_2022-07-14_prct_overlap.csv")
-source_prct_overlap_2022_07_14$source <- c("PLOS", "Scopus", "Springer", "xDD")
-knitr::kable(source_prct_overlap_2022_07_14, 
-             col.names = c("Source", "Total Citations", "% in PLOS", "% in Scopus", "% in Springer", "% in xDD"), 
-             digits = 3)
-```
 
 3)  Does the prevalence of data citations differ among disciplines (enviro vs SS)?
 
