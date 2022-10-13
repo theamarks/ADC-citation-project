@@ -3,8 +3,9 @@ title: |
   ![](ADC_Logo.png){width=2in}  
   
   Searching for Elusive Arctic Dataset Citations
-subtitle: "Arctice Data Center - Data Fellowship Project 2022"
+subtitle: "Data Fellowship Project 2022"
 author: "Althea Marks"
+
 affiliation: "NCEAS"
 date: "`r Sys.Date()`"
 format: 
