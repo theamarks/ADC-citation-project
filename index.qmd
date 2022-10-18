@@ -15,8 +15,8 @@ format:
     code-tools: true
     theme: cosmo 
     self-contained: true
-title-block-banner: "#146660"
-title-block-banner-color: "#B5E1E7"
+title-block-banner: "#B5E1E7"
+title-block-banner-color: "#146660"
 ---
 
 
@@ -90,6 +90,7 @@ library(stringr)
 library(purrr)
 library(ggplot2)
 library(htmltools)
+library(eulerr)
 # library(scythe) # published version of package
 
 # install development version of scythe package with added xdd library
@@ -350,6 +351,27 @@ job::job({
 )
 ```
 
+```{r save_scythe_results}
+#| code-fold: true
+## Save results as .csv's to project output folder
+date <- "2022-07-14"
+
+write.csv(citations_scopus,
+          file.path(output_directory, paste0("scythe_", date, "_scopus.csv")),
+          row.names = F)
+write.csv(citations_springer,
+          file.path(output_directory, paste0("scythe_", date, "_springer.csv")),
+          row.names = F)
+write.csv(citations_plos,
+          file.path(output_directory, paste0("scythe_", date, "_plos.csv")),
+          row.names = F)
+write.csv(citations_xdd,
+          file.path(output_directory, paste0("scythe_", date, "_xdd.csv")),
+          row.names = F)
+
+```
+
+
 ### Dealing with API request errors
 
 The `tryCatch()` functions in the above search `for` loops records errors produced from any API request. The corresponding DOIs can be aggregated and rerun through `scythe`. The code below does this. When running the DOIs with HTTP errors through Scopus a second time we discovered a small bug in the `scythe` code which was subsequently fixed.
@@ -381,9 +403,9 @@ job::job({
 }, title = paste0("scopus error citation search ", Sys.time()))
 
 # save search results from errored DOI
-write_csv(citations_error_scopus, "./output/scythe_2022-07-14_scopus_error.csv")
-# add error citations results to main scopus results data.frame
-citations_scopus <- rbind(citations_scopus, citations_error_scopus)
+write.csv(citations_error_scopus,
+          file.path(output_directory, paste0("scythe_", date, "_scopus_error.csv")),
+          row.names = F)
 
 ######### PLOS
 citations_error_plos <- data.frame()
@@ -406,33 +428,15 @@ job::job({
 # empty dataframe return means no citations found and no HTTP errors
 ```
 
-```{r save_scythe_results}
-#| code-fold: true
-## Save results as .csv's to project output folder
-date <- "2022-07-14"
-
-write.csv(citations_scopus,
-          file.path(output_directory, paste0("scythe_", date, "_scopus_all.csv")),
-          row.names = F)
-write.csv(citations_springer,
-          file.path(output_directory, paste0("scythe_", date, "_springer_all.csv")),
-          row.names = F)
-write.csv(citations_plos,
-          file.path(output_directory, paste0("scythe_", date, "_plos_all.csv")),
-          row.names = F)
-write.csv(citations_xdd,
-          file.path(output_directory, paste0("scythe_", date, "_xdd_all.csv")),
-          row.names = F)
-
-```
-
 ## Analysis / Results
 
 ### Does Addition of xDD Improve Quality & Scope of ADC dataset Citations?
 
 *Does increasing the number of sources we are searching result in more complete coverage/quality?*
 
-```{r raw_scythe_resutls, eval=T}
+Interesting to add column with number of datasets in addition to citations
+
+```{r raw_scythe_results, eval=T}
 #| code-fold: true
 #| label: tbl-raw
 #| tbl-cap: "Raw Results from Scythe Search of ADC DOIs"
@@ -554,6 +558,15 @@ knitr::kable(source_prct_overlap_2022_07_14,
              col.names = c("Source", "Total Citations", "% in PLOS", "% in Scopus", "% in Springer", "% in xDD"), 
              digits = 3)
 ```
+
+```{r prct_overlap_fig}
+#| label: fig-overlap
+#| fig-cap: "Percent overlap between scythe sources"
+
+
+
+```
+
 
 #### How Many Dataset Citations Are Unique to Each Source?
 
