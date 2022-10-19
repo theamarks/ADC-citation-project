@@ -171,8 +171,7 @@ metrics_citations <- function(from = as.POSIXct("2010-01-01"), to = as.POSIXct(S
 ```{r adc_citations, cache=TRUE}
 #| code-fold: true
 # Run ADC API Get call, unnest target_id results to individual columns
-
-dataone_cit <- metrics_citations()
+dataone_cit <- metrics_citations(to = as.POSIXct(date)) # use analysis date to constrain search
 
 dataone_cit <- tidyr::unnest(dataone_cit,
                           cols = c(target_id, source_id, source_url,
