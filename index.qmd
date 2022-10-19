@@ -384,7 +384,7 @@ The `tryCatch()` functions in the above search `for` loops records errors produc
 ```{r read_saved_scythe_results}
 #| code-fold: true
 
-# read in saved scythe results for all sources
+# read in saved scythe results for all sources `cits_source` objects created
 # reduces dependency on global environment objects
 read_scythe_results <- function(){
 for(i in source_list){
@@ -407,7 +407,7 @@ for(i in source_list){
 ```
 
 ::: callout-note
-Running a second round of API queries using DOIs associated with 1st round API request errors is not automated here. Future script users will need to adjust the following code chunk. 
+Running a second round of API queries using DOIs associated with 1st round API request errors is not automated here. Future script users will need to adjust the following code chunk. Will need to combine 1st and 2nd run results for analysis.
 :::
 
 ```{r run_failed_query_dois_again}
@@ -465,24 +465,24 @@ job::job({
 
 Interesting to add column with number of datasets in addition to citations
 
+```{r combine_results}
+#| code-fold: true
+
+scythe_cit <-
+  rbind(cits_scopus,
+        cits_springer,
+        cits_plos,
+        cits_xdd) %>%
+  filter(!is.na(article_id)) # remove NA/error observations
+
+write_csv(scythe_cit, file.path(output_directory, paste0("scythe_", date, "_citations_all.csv")))
+```
+
+
 ```{r raw_scythe_results, eval=T}
 #| code-fold: true
 #| label: tbl-raw
 #| tbl-cap: "Raw Results from Scythe Search of ADC DOIs"
-# Read in saved data files
-citations_plos <- readr::read_csv(file.path(output_directory, "scythe_2022-07-14_plos.csv"))
-citations_scopus <- readr::read_csv(file.path(output_directory, "scythe_2022-07-14_scopus.csv"))
-citations_springer <- readr::read_csv(file.path(output_directory, "scythe_2022-07-14_springer.csv"))
-citations_xdd <- readr::read_csv(file.path(output_directory, "scythe_2022-07-14_xdd.csv"))
-
-scythe_cit <-
-  rbind(citations_scopus,
-        citations_springer,
-        citations_plos,
-        citations_xdd) %>%
-  filter(!is.na(article_id)) # remove NA/error observations
-
-# write_csv(scythe_cit, file.path(output_directory, paste0("scythe_", date, "_citations_all.csv")))
 
 # create mini dataframe to populate total citations in summary table
 scythe_total <- tibble("source" = "Total",
