@@ -187,13 +187,13 @@ write_csv(dataone_cit, file.path(output_directory,
 DataOne metrics API can only provide data package DOIs with citations, and can not provide a comprehensive list of all data package DOIs contained within the ADC. To search through all the repository metadata we query the DataONE search index (Apache SOLR search engine). SOLR is the same underlying mechanism that DataONE uses in the online tool and can create complex logical query conditions. 
 
 ::: callout-tip
-Call `getQueryEngineDescription(cn, "solr")` to return a complete list of searchable SOLR values
+Call `dataone::getQueryEngineDescription(cn, "solr")` to return a complete list of searchable SOLR values
 :::
 
 ```{r SOLR_query, cache=TRUE}
 #| code-fold: true
 
-# set coordinationg node
+# set coordinating node
 cn <- dataone::CNode("PROD")
 
 # point to specific member node
@@ -211,15 +211,21 @@ queryParamList <- list(q="id:doi*",
 solr_adc_result <- dataone::query(mn, solrQuery=queryParamList, as="data.frame", parse=FALSE)
 
 write.csv(solr_adc_result, file.path(output_directory, 
-                                     paste0("solr_adc_", Sys.Date(), ".csv")))
+                                     paste0("solr_adc_", date, ".csv")))
 ```
+
+*SOLR query does not yet include date search term to align with `date` object. Useing `date` to save and read in .csv*
 
 ### Run all ADC dataset DOIs through `scythe` libraries
 
 ```{r All_ADC_DOIs}
 #| code-fold: true
+
+# read in saved SOLR results
+solr_adc_result_csv <- read_csv(file.path(output_directory, 
+                                          paste0("solr_adc_", date, ".csv")))
 # create vector of all ADC DOIs from solr query `result`
-adc_all_dois <- c(solr_adc_result$id)
+adc_all_dois <- c(solr_adc_result_csv$id)
 ```
 
 APIs can have request rate limits. These specific rates are often found in the API documentation or the API response headers. If request rate limits are exceeded, API queries will fail.
@@ -244,10 +250,10 @@ curlGetHeaders(url)
 #curlGetHeaders(url_spring)
 ```
 
-Run each library search in parallel in separate background jobs to keep console available to work with. By default the `job::job()` imports the global environment into the background job.
+Run each library search in parallel in separate background jobs to keep console available to work with. By default `job::job()` imports the global environment into the background job.
 
 ::: callout-note
-`scythe::scythe_set_key()` is a wrapper for the `key_ring` package. An interactive password prompt is required to access the API keys stored in `key_ring`. This *does not work* within a background job environment; your keyring needs to be temporarily unlocked with `keyring::keyring_unlock("scythe", "your password")` replace `password` with your actual keyring password.
+`scythe::scythe_set_key()` is a wrapper for the `key_ring` package. An interactive password prompt is required to access the API keys stored in `key_ring`. This *does not work* within a background job environment; your keyring needs to be temporarily unlocked with `keyring::keyring_unlock("scythe", "your password")` replace `password` in the next code chunk with your actual keyring password.
 :::
 
 ::: callout-warning
@@ -282,6 +288,10 @@ job::job({
                          }
                        )
     citations_scopus <- rbind(citations_scopus, result)
+    write.csv(citations_scopus, 
+              file.path(output_directory,
+                        paste0("scythe_", date, "_scopus.csv")),
+              row.names = F)
   }
 }, title = paste0("scopus citation search ", Sys.time()))
 
@@ -301,6 +311,10 @@ job::job({
                          }
                        )
     citations_plos <- rbind(citations_plos, result)
+    write.csv(citations_plos, 
+              file.path(output_directory,
+                        paste0("scythe_", date, "_plos.csv")),
+              row.names = F)
     }
 }, title = paste0("plos citation search ", Sys.time()))
 
@@ -320,6 +334,10 @@ job::job({
                          }
                        )
     citations_xdd <- rbind(citations_xdd, result)
+    write.csv(citations_xdd, 
+              file.path(output_directory,
+                        paste0("scythe_", date, "_xdd.csv")),
+              row.names = F)
     }
 }, title = paste0("xdd citation search ", Sys.time()))
 ```
@@ -357,25 +375,10 @@ job::job({
     }
 }, title = paste0("springer citation search", Sys.time())
 )
-```
 
-```{r save_scythe_results}
-#| code-fold: true
-## Save results as .csv's to project output folder
-
-write.csv(citations_scopus,
-          file.path(output_directory, paste0("scythe_", date, "_scopus.csv")),
-          row.names = F)
 write.csv(citations_springer,
           file.path(output_directory, paste0("scythe_", date, "_springer.csv")),
           row.names = F)
-write.csv(citations_plos,
-          file.path(output_directory, paste0("scythe_", date, "_plos.csv")),
-          row.names = F)
-write.csv(citations_xdd,
-          file.path(output_directory, paste0("scythe_", date, "_xdd.csv")),
-          row.names = F)
-
 ```
 
 
