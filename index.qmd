@@ -179,17 +179,19 @@ dataone_cit <- tidyr::unnest(dataone_cit,
                                    publisher, journal, volume, page, year_of_publishing))
 
 write_csv(dataone_cit, file.path(output_directory,
-                                 paste0("dataone_metrics_cit_", Sys.Date(),".csv")))
+                                 paste0("dataone_metrics_cit_", date,".csv")))
 ```
 
 ### Get all ADC DOIs from SOLR query
 
-DataOne metrics API can only provide data package DOIs with citations, and can not provide a comprehensive list of all data package DOIs contained within the ADC. To search through all the repository metadata we query the DataONE search index (Apache SOLR search engine). SOLR is the same underlying mechanism that DataONE uses in the online tool and can create complex logical query conditions.
+DataOne metrics API can only provide data package DOIs with citations, and can not provide a comprehensive list of all data package DOIs contained within the ADC. To search through all the repository metadata we query the DataONE search index (Apache SOLR search engine). SOLR is the same underlying mechanism that DataONE uses in the online tool and can create complex logical query conditions. 
+
+::: callout-tip
+Call `getQueryEngineDescription(cn, "solr")` to return a complete list of searchable SOLR values
+:::
 
 ```{r SOLR_query, cache=TRUE}
 #| code-fold: true
-# complete list of searchable values
-#getQueryEngineDescription(cn, "solr")
 
 # set coordinationg node
 cn <- dataone::CNode("PROD")
@@ -201,8 +203,9 @@ mn <- dataone::getMNode(cn, "urn:node:ARCTIC")
 queryParamList <- list(q="id:doi*", 
                        fl="id,title,dateUploaded,datasource",
                        start ="0",
-                       rows = "100000")
+                       rows = "100000") # set number to definitely exceed actual number
 # use `q = "identifier:doi* AND (*:* NOT obsoletedBy:*)"` to only include current versions of data packages 
+# DataOne aggregates citations across dataset versions
 
 # send query to Solr, return results as dataframe
 solr_adc_result <- dataone::query(mn, solrQuery=queryParamList, as="data.frame", parse=FALSE)
