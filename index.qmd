@@ -480,20 +480,6 @@ job::job({
 
 Interesting to add column with number of datasets in addition to citations
 
-```{r combine_results}
-#| code-fold: true
-
-scythe_cit <-
-  rbind(cits_scopus,
-        cits_springer,
-        cits_plos,
-        cits_xdd) %>%
-  filter(!is.na(article_id)) # remove NA/error observations
-
-write_csv(scythe_cit, file.path(output_directory, paste0("scythe_", date, "_citations_all.csv")))
-```
-
-
 ```{r raw_scythe_results, eval=T}
 #| code-fold: true
 #| label: tbl-raw
@@ -501,18 +487,20 @@ write_csv(scythe_cit, file.path(output_directory, paste0("scythe_", date, "_cita
 
 # create mini dataframe to populate total citations in summary table
 scythe_total <- tibble("source" = "Total",
-                       "num_cit" = length(scythe_cit$dataset_id))
+                       "num_cit" = length(scythe_cit$dataset_id),
+                       "num_datasets" = length(unique(scythe_cit$dataset_id)))
   
 # summary table + cheater total row
 scythe_sum <- scythe_cit %>% 
   group_by(source) %>% 
-  summarise("num_cit" = length(source)) %>% 
+  summarise("num_cit" = length(source),
+            "num_datasets" = length(unique(dataset_id))) %>% 
   rbind(scythe_total)
 
 scythe_sum$source <- c("PLOS", "Scopus", "Springer", "xDD", "Total")
 
 knitr::kable(scythe_sum, 
-             col.names = c("Source", "Number of Citations"))
+             col.names = c("Source", "Number of Citations", "Number of Datasets"))
 ```
 
 #### What is the Overlap in Citations Found Among Sources?
