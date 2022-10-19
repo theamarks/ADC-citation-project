@@ -97,9 +97,16 @@ library(eulerr)
 devtools::install_github("dataoneorg/scythe@develop")
 ```
 
-```{r set_analysis_date}
+```{r set_analysis_values}
 # set date here. Used throughout data collection, saving, and analysis. YYYY-MM-DD
 date <- "2022-07-14"
+source_list <- c("scopus", "springer", "plos", "xdd")
+
+# Set up result file paths
+path_scopus <- file.path(output_directory, paste0("scythe_", date, "_scopus.csv"))
+path_springer <- file.path(output_directory, paste0("scythe_", date, "_springer.csv"))
+path_plos <- file.path(output_directory, paste0("scythe_", date, "_plos.csv"))
+path_xdd <- file.path(output_directory, paste0("scythe_", date, "_xdd.csv"))
 ```
 
 
@@ -288,10 +295,7 @@ job::job({
                          }
                        )
     citations_scopus <- rbind(citations_scopus, result)
-    write.csv(citations_scopus, 
-              file.path(output_directory,
-                        paste0("scythe_", date, "_scopus.csv")),
-              row.names = F)
+    write.csv(citations_scopus, path_scopus, row.names = F)
   }
 }, title = paste0("scopus citation search ", Sys.time()))
 
@@ -311,10 +315,7 @@ job::job({
                          }
                        )
     citations_plos <- rbind(citations_plos, result)
-    write.csv(citations_plos, 
-              file.path(output_directory,
-                        paste0("scythe_", date, "_plos.csv")),
-              row.names = F)
+    write.csv(citations_plos, path_plos, row.names = F)
     }
 }, title = paste0("plos citation search ", Sys.time()))
 
@@ -334,10 +335,7 @@ job::job({
                          }
                        )
     citations_xdd <- rbind(citations_xdd, result)
-    write.csv(citations_xdd, 
-              file.path(output_directory,
-                        paste0("scythe_", date, "_xdd.csv")),
-              row.names = F)
+    write.csv(citations_xdd, path_xdd, row.names = F)
     }
 }, title = paste0("xdd citation search ", Sys.time()))
 ```
@@ -376,11 +374,8 @@ job::job({
 }, title = paste0("springer citation search", Sys.time())
 )
 
-write.csv(citations_springer,
-          file.path(output_directory, paste0("scythe_", date, "_springer.csv")),
-          row.names = F)
+write.csv(citations_springer, path_springer, row.names = F)
 ```
-
 
 ### Dealing with API request errors
 
@@ -389,12 +384,25 @@ The `tryCatch()` functions in the above search `for` loops records errors produc
 ```{r run_failed_query_dois_again}
 #| code-fold: true
 
+# read in saved scythe results for all sources
+read_scythe_results <- function(){
+for(i in source_list){
+    path <- eval(parse(text = paste0("path_", i)))
+    if(file.exists(path)){
+      assign(paste0("cits_",i), read_csv(file.path(path)))
+    } else{print(paste0(i, " saved scythe results do not exsist in output directory"))
+      }
+}
+}
 
-
-doi_error_scopus <- citations_scopus[is.na(citations_scopus$article_id),"dataset_id"]$dataset_id
-doi_error_springer <- citations_springer[is.na(citations_springer$article_id), "dataset_id"]$dataset_id # no errors
-doi_error_plos <- citations_plos[is.na(citations_plos$article_id), "dataset_id"]$dataset_id
-doi_error_xdd <- citations_xdd[is.na(citations_xdd$article_id), "dataset_id"]$dataset_id # no errors
+# Extract DOIs that error during scythe queries (only create if errors recorded)
+for(i in source_list){
+  source <- eval(parse(text = paste0("cits_", i)))
+  if(sum(is.na(source$article_id)) > 0){
+    assign(paste0("doi_error_", i),
+           source[is.na(source$article_id),"dataset_id"]$dataset_id)
+    }  
+}
 
 ######### Scopus # this isn't working
 citations_error_scopus <- data.frame()
