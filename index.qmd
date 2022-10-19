@@ -97,6 +97,12 @@ library(eulerr)
 devtools::install_github("dataoneorg/scythe@develop")
 ```
 
+```{r set_analysis_date}
+# set date here. Used throughout data collection, saving, and analysis. YYYY-MM-DD
+date <- "2022-07-14"
+```
+
+
 ## Data Collection
 
 ### Retrieve all ADC citations with GET API request body
@@ -354,7 +360,6 @@ job::job({
 ```{r save_scythe_results}
 #| code-fold: true
 ## Save results as .csv's to project output folder
-date <- "2022-07-14"
 
 write.csv(citations_scopus,
           file.path(output_directory, paste0("scythe_", date, "_scopus.csv")),
@@ -378,6 +383,9 @@ The `tryCatch()` functions in the above search `for` loops records errors produc
 
 ```{r run_failed_query_dois_again}
 #| code-fold: true
+
+
+
 doi_error_scopus <- citations_scopus[is.na(citations_scopus$article_id),"dataset_id"]$dataset_id
 doi_error_springer <- citations_springer[is.na(citations_springer$article_id), "dataset_id"]$dataset_id # no errors
 doi_error_plos <- citations_plos[is.na(citations_plos$article_id), "dataset_id"]$dataset_id
