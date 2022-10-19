@@ -107,6 +107,9 @@ path_scopus <- file.path(output_directory, paste0("scythe_", date, "_scopus.csv"
 path_springer <- file.path(output_directory, paste0("scythe_", date, "_springer.csv"))
 path_plos <- file.path(output_directory, paste0("scythe_", date, "_plos.csv"))
 path_xdd <- file.path(output_directory, paste0("scythe_", date, "_xdd.csv"))
+
+# path to all scythe results w/ errors removed
+path_all <- file.path(output_directory, paste0("scythe_", date, "_all_noerr.csv"))
 ```
 
 
@@ -197,7 +200,7 @@ DataOne metrics API can only provide data package DOIs with citations, and can n
 Call `dataone::getQueryEngineDescription(cn, "solr")` to return a complete list of searchable SOLR values
 :::
 
-```{r SOLR_query, cache=TRUE}
+```{r SOLR_query}
 #| code-fold: true
 
 # set coordinating node
@@ -385,8 +388,8 @@ The `tryCatch()` functions in the above search `for` loops records errors produc
 #| code-fold: true
 
 # read in saved scythe results for all sources `cits_source` objects created
-# reduces dependency on global environment objects
-read_scythe_results <- function(){
+# reduces dependency on global environment objects - can pick up analysis here instead of rerunning scythe
+
 for(i in source_list){
     path <- eval(parse(text = paste0("path_", i)))
     if(file.exists(path)){
@@ -394,7 +397,19 @@ for(i in source_list){
     } else{print(paste0(i, " saved scythe results do not exsist in output directory"))
       }
 }
+
+# read in saved combined results if already exist, create and save if not
+if(file.exists(path_all)) {
+  scythe_cit <- read_csv(path_all)
+} else{
+  scythe_cit <- rbind(cits_scopus, 
+                      cits_springer,
+                      cits_plos,
+                      cits_xdd) %>%
+    filter(!is.na(article_id)) # remove NA/error observations
+  write_csv(scythe_cit, path_all)
 }
+  
 
 # Extract DOIs that error during scythe queries (only create if errors recorded)
 for(i in source_list){
