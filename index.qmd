@@ -379,12 +379,13 @@ write.csv(citations_springer, path_springer, row.names = F)
 
 ### Dealing with API request errors
 
-The `tryCatch()` functions in the above search `for` loops records errors produced from any API request. The corresponding DOIs can be aggregated and rerun through `scythe`. The code below does this. When running the DOIs with HTTP errors through Scopus a second time we discovered a small bug in the `scythe` code which was subsequently fixed.
+The `tryCatch()` functions in the above search `for` loops records errors produced from any API request. The corresponding DOIs are extracted and rerun through `scythe` a second time.  When running the DOIs with HTTP errors through Scopus a second time we discovered a small bug in the `scythe` code which was subsequently fixed.
 
-```{r run_failed_query_dois_again}
+```{r read_saved_scythe_results}
 #| code-fold: true
 
 # read in saved scythe results for all sources
+# reduces dependency on global environment objects
 read_scythe_results <- function(){
 for(i in source_list){
     path <- eval(parse(text = paste0("path_", i)))
@@ -403,8 +404,15 @@ for(i in source_list){
            source[is.na(source$article_id),"dataset_id"]$dataset_id)
     }  
 }
+```
 
-######### Scopus # this isn't working
+::: callout-note
+Running a second round of API queries using DOIs associated with 1st round API request errors is not automated here. Future script users will need to adjust the following code chunk. 
+:::
+
+```{r run_failed_query_dois_again}
+#| code-fold: true
+## Scopus
 citations_error_scopus <- data.frame()
 job::job({
   for (i in seq_along(doi_error_scopus)) {
