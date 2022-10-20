@@ -91,6 +91,7 @@ library(purrr)
 library(ggplot2)
 library(htmltools)
 library(eulerr)
+library(dataone)
 # library(scythe) # published version of package
 
 # install development version of scythe package with added xdd library
@@ -98,6 +99,7 @@ devtools::install_github("dataoneorg/scythe@develop")
 ```
 
 ```{r set_analysis_values, eval=T}
+#| code-fold: true
 # set date here. Used throughout data collection, saving, and analysis. YYYY-MM-DD
 date <- "2022-07-14"
 source_list <- c("scopus", "springer", "plos", "xdd")
@@ -510,31 +512,12 @@ We evaluated the redundancy in dataset citations found among sources by matching
 ```{r source_overlap}
 #| code-fold: true
 
-# match article_id and dataset_id columns among results
-overlap_plos_scopus <-
-  inner_join(cits_plos,
-             cits_scopus,
-             by = c("article_id", "dataset_id"))
-overlap_plos_springer <-
-  inner_join(cits_plos,
-             cits_springer,
-             by = c("article_id", "dataset_id"))
-overlap_plos_xdd <-
-  inner_join(cits_plos,
-             cits_xdd,
-             by = c("article_id", "dataset_id"))
-overlap_scopus_springer <-
-  inner_join(cits_scopus,
-             cits_springer,
-             by = c("article_id", "dataset_id"))
-overlap_scopus_xdd <-
-  inner_join(cits_scopus,
-             cits_xdd,
-             by = c("article_id", "dataset_id"))
-overlap_springer_xdd <-
-  inner_join(cits_springer,
-             cits_xdd,
-             by = c("article_id", "dataset_id"))
+overlap <- scythe_cit %>% 
+  group_by(dataset_id, article_id) %>% 
+  summarize(source_combination = paste(source, collapse = ", ", sep = ",")) %>% 
+  group_by(source_combination) %>% 
+  summarize(n = n())
+
 
 # function to calculate percent of source citations also found in a second source
 calc_prct_overlap <- function(source_1, source_2) {
@@ -604,7 +587,7 @@ knitr::kable(source_prct_overlap_2022_07_14,
 ```{r unique_citations_by_source, eval = TRUE}
 #| code-fold: true
 
-unique_plos <- citations_plos %>% 
+unique_plos <- cits_plos %>% 
   anti_join(cits_scopus, by = c("article_id", "dataset_id")) %>% 
   anti_join(cits_springer, by = c("article_id", "dataset_id")) %>% 
   anti_join(cits_xdd, by = c("article_id", "dataset_id")) %>% 
