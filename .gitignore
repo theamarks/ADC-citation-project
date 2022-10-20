@@ -5,3 +5,9 @@
 .Rproj
 
 /.quarto/
+
+**/output
+
+**/index_cache
+
+**/index_files
