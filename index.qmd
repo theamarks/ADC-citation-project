@@ -69,7 +69,7 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE, message = FALSE)
 
 ```
 
-```{r directories, eval=TRUE}
+```{r directories, eval=TRUE, }
 #| code-fold: true
 dir.create(path = "./output", showWarnings = F)
 output_directory <- file.path("./output")
@@ -518,6 +518,11 @@ overlap <- scythe_cit %>%
   group_by(source_combination) %>% 
   summarize(n = n())
 
+overlap2 <- scythe_cit %>% 
+  pivot_wider(id_cols= !article_title, 
+              names_from = source,
+              values_from = source,
+              values_fill = NA)
 
 # function to calculate percent of source citations also found in a second source
 calc_prct_overlap <- function(source_1, source_2) {
