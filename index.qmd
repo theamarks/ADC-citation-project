@@ -524,6 +524,17 @@ overlap2 <- scythe_cit %>%
               values_from = source,
               values_fill = NA)
 
+
+overlap3 <- overlap2 %>% 
+  mutate(source = paste(
+    ifelse(scopus == "scopus", "scopus", ""), 
+    ifelse(springer == "springer", "springer", ""), 
+    ifelse(plos == "plos", "plos", ""), 
+    ifelse(xdd == "xdd", "xdd", ""), 
+    sep = "-"
+))
+
+
 # function to calculate percent of source citations also found in a second source
 calc_prct_overlap <- function(source_1, source_2) {
   pairs <-
