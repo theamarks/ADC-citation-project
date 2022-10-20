@@ -583,7 +583,7 @@ write.csv(scythe_overlap_sum,
 ```{r prct_overlap_table, eval=TRUE, echo=FALSE}
 #| label: tbl-overlap
 #| tbl-cap: "Percent overlap between Scythe sources"
-source_prct_overlap_2022_07_14 <- :read_csv("./output/scythe_2022-07-14_prct_overlap.csv")
+source_prct_overlap_2022_07_14 <- read_csv("./output/scythe_2022-07-14_prct_overlap.csv")
 source_prct_overlap_2022_07_14$source <- c("PLOS", "Scopus", "Springer", "xDD")
 knitr::kable(source_prct_overlap_2022_07_14, 
              col.names = c("Source", "Total Citations", "% in PLOS", "% in Scopus", "% in Springer", "% in xDD"), 
@@ -605,27 +605,27 @@ knitr::kable(source_prct_overlap_2022_07_14,
 #| code-fold: true
 
 unique_plos <- citations_plos %>% 
-  anti_join(citations_scopus, by = c("article_id", "dataset_id")) %>% 
-  anti_join(citations_springer, by = c("article_id", "dataset_id")) %>% 
-  anti_join(citations_xdd, by = c("article_id", "dataset_id")) %>% 
+  anti_join(cits_scopus, by = c("article_id", "dataset_id")) %>% 
+  anti_join(cits_springer, by = c("article_id", "dataset_id")) %>% 
+  anti_join(cits_xdd, by = c("article_id", "dataset_id")) %>% 
   filter(!is.na(article_id))
 
-unique_scopus <- citations_scopus %>% 
-  anti_join(citations_plos, by = c("article_id", "dataset_id")) %>% 
-  anti_join(citations_springer, by = c("article_id", "dataset_id")) %>% 
-  anti_join(citations_xdd, by = c("article_id", "dataset_id")) %>% 
+unique_scopus <- cits_scopus %>% 
+  anti_join(cits_plos, by = c("article_id", "dataset_id")) %>% 
+  anti_join(cits_springer, by = c("article_id", "dataset_id")) %>% 
+  anti_join(cits_xdd, by = c("article_id", "dataset_id")) %>% 
   filter(!is.na(article_id))
 
-unique_springer <- citations_springer %>% 
-  anti_join(citations_plos, by = c("article_id", "dataset_id")) %>% 
-  anti_join(citations_scopus, by = c("article_id", "dataset_id")) %>% 
-  anti_join(citations_xdd, by = c("article_id", "dataset_id")) %>% 
+unique_springer <- cits_springer %>% 
+  anti_join(cits_plos, by = c("article_id", "dataset_id")) %>% 
+  anti_join(cits_scopus, by = c("article_id", "dataset_id")) %>% 
+  anti_join(cits_xdd, by = c("article_id", "dataset_id")) %>% 
   filter(!is.na(article_id))
   
-unique_xdd <- citations_xdd %>% 
-  anti_join(citations_plos, by = c("article_id", "dataset_id")) %>% 
-  anti_join(citations_scopus, by = c("article_id", "dataset_id")) %>% 
-  anti_join(citations_springer, by = c("article_id", "dataset_id")) %>% 
+unique_xdd <- cits_xdd %>% 
+  anti_join(cits_plos, by = c("article_id", "dataset_id")) %>% 
+  anti_join(cits_scopus, by = c("article_id", "dataset_id")) %>% 
+  anti_join(cits_springer, by = c("article_id", "dataset_id")) %>% 
   filter(!is.na(article_id))
 
 # combine unique citation tables
