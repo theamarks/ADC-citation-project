@@ -97,7 +97,7 @@ library(eulerr)
 devtools::install_github("dataoneorg/scythe@develop")
 ```
 
-```{r set_analysis_values}
+```{r set_analysis_values, eval=T}
 # set date here. Used throughout data collection, saving, and analysis. YYYY-MM-DD
 date <- "2022-07-14"
 source_list <- c("scopus", "springer", "plos", "xdd")
@@ -224,7 +224,7 @@ write.csv(solr_adc_result, file.path(output_directory,
                                      paste0("solr_adc_", date, ".csv")))
 ```
 
-*SOLR query does not yet include date search term to align with `date` object. Useing `date` to save and read in .csv*
+*SOLR query does not yet include date search term to align with `date` object. Using `date` to save and read in .csv*
 
 ### Run all ADC dataset DOIs through `scythe` libraries
 
@@ -384,7 +384,7 @@ write.csv(citations_springer, path_springer, row.names = F)
 
 The `tryCatch()` functions in the above search `for` loops records errors produced from any API request. The corresponding DOIs are extracted and rerun through `scythe` a second time.  When running the DOIs with HTTP errors through Scopus a second time we discovered a small bug in the `scythe` code which was subsequently fixed.
 
-```{r read_saved_scythe_results}
+```{r read_saved_scythe_results, eval=T}
 #| code-fold: true
 
 # read in saved scythe results for all sources `cits_source` objects created
@@ -510,31 +510,30 @@ We evaluated the redundancy in dataset citations found among sources by matching
 ```{r source_overlap}
 #| code-fold: true
 
-# 
 # match article_id and dataset_id columns among results
 overlap_plos_scopus <-
-  inner_join(citations_plos,
-             citations_scopus,
+  inner_join(cits_plos,
+             cits_scopus,
              by = c("article_id", "dataset_id"))
 overlap_plos_springer <-
-  inner_join(citations_plos,
-             citations_springer,
+  inner_join(cits_plos,
+             cits_springer,
              by = c("article_id", "dataset_id"))
 overlap_plos_xdd <-
-  inner_join(citations_plos,
-             citations_xdd,
+  inner_join(cits_plos,
+             cits_xdd,
              by = c("article_id", "dataset_id"))
 overlap_scopus_springer <-
-  inner_join(citations_scopus,
-             citations_springer,
+  inner_join(cits_scopus,
+             cits_springer,
              by = c("article_id", "dataset_id"))
 overlap_scopus_xdd <-
-  inner_join(citations_scopus,
-             citations_xdd,
+  inner_join(cits_scopus,
+             cits_xdd,
              by = c("article_id", "dataset_id"))
 overlap_springer_xdd <-
-  inner_join(citations_springer,
-             citations_xdd,
+  inner_join(cits_springer,
+             cits_xdd,
              by = c("article_id", "dataset_id"))
 
 # function to calculate percent of source citations also found in a second source
@@ -549,24 +548,24 @@ calc_prct_overlap <- function(source_1, source_2) {
 scythe_overlap_sum <- scythe_cit %>%
   mutate("citation_df" = ifelse(
     source == "plos",
-    "citations_plos",
+    "cits_plos",
     ifelse(
       source == "scopus",
-      "citations_scopus",
-      ifelse(source == "springer", "citations_springer", "citations_xdd")
+      "cits_scopus",
+      ifelse(source == "springer", "cits_springer", "cits_xdd")
     )
   )) %>%
   group_by(source, citation_df) %>%
   summarise(
     "total_citations" = n(),
     "prct_in_plos" = calc_prct_overlap(eval(parse(text = citation_df)), 
-                                              citations_plos),
+                                              cits_plos),
     "prct_in_scopus" = calc_prct_overlap(eval(parse(text = citation_df)), 
-                                                citations_scopus),
+                                                cits_scopus),
     "prct_in_springer" = calc_prct_overlap(eval(parse(text = citation_df)), 
-                                                  citations_springer),
+                                                  cits_springer),
     "prct_in_xdd" = calc_prct_overlap(eval(parse(text = citation_df)), 
-                                             citations_xdd)
+                                             cits_xdd)
   ) %>%
   select(1, 3:7)
 
@@ -584,7 +583,7 @@ write.csv(scythe_overlap_sum,
 ```{r prct_overlap_table, eval=TRUE, echo=FALSE}
 #| label: tbl-overlap
 #| tbl-cap: "Percent overlap between Scythe sources"
-source_prct_overlap_2022_07_14 <- readr::read_csv("./output/scythe_2022-07-14_prct_overlap.csv")
+source_prct_overlap_2022_07_14 <- :read_csv("./output/scythe_2022-07-14_prct_overlap.csv")
 source_prct_overlap_2022_07_14$source <- c("PLOS", "Scopus", "Springer", "xDD")
 knitr::kable(source_prct_overlap_2022_07_14, 
              col.names = c("Source", "Total Citations", "% in PLOS", "% in Scopus", "% in Springer", "% in xDD"), 
