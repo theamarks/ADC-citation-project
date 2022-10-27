@@ -451,6 +451,7 @@ job::job({
 write.csv(citations_error_scopus,
           file.path(output_directory, paste0("scythe_", date, "_scopus_error.csv")),
           row.names = F)
+# 2022-07-14 scopus errors were incorporated into cits_scopus at some point. Not reflected in this code script.
 
 ######### PLOS
 citations_error_plos <- data.frame()
