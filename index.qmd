@@ -19,7 +19,6 @@ title-block-banner: "#B5E1E7"
 title-block-banner-color: "#146660"
 ---
 
-
 ## Purpose
 
 Run ADC DOIs through `scythe` & compare to known DataONE metrics citations. Known ADC citations have mixed origins including DataCite, previous `scythe` runs, and manual additions via the ADC UI.
@@ -62,17 +61,11 @@ Run ADC DOIs through `scythe` & compare to known DataONE metrics citations. Know
 
 -   Compare citations from `scythe` to DataONE metrics
 
-## Setup
+## R Setup
 
 ```{r setup, include=F}
 knitr::opts_chunk$set(echo = TRUE, eval = FALSE, message = FALSE)
 
-```
-
-```{r directories, eval=TRUE, }
-#| code-fold: true
-dir.create(path = "./output", showWarnings = F)
-output_directory <- file.path("./output")
 ```
 
 ```{r package_library, eval=TRUE}
@@ -98,8 +91,13 @@ library(dataone)
 devtools::install_github("dataoneorg/scythe@develop")
 ```
 
-```{r set_analysis_values, eval=T}
+```{r set_values_directories, eval=T}
 #| code-fold: true
+
+# create output directory
+dir.create(path = "./output", showWarnings = F)
+output_directory <- file.path("./output")
+
 # set date here. Used throughout data collection, saving, and analysis. YYYY-MM-DD
 date <- "2022-07-14"
 source_list <- c("scopus", "springer", "plos", "xdd")
@@ -113,7 +111,6 @@ path_xdd <- file.path(output_directory, paste0("scythe_", date, "_xdd.csv"))
 # path to all scythe results w/ errors removed
 path_all <- file.path(output_directory, paste0("scythe_", date, "_all_noerr.csv"))
 ```
-
 
 ## Data Collection
 
@@ -196,7 +193,7 @@ write_csv(dataone_cit, file.path(output_directory,
 
 ### Get all ADC DOIs from SOLR query
 
-DataOne metrics API can only provide data package DOIs with citations, and can not provide a comprehensive list of all data package DOIs contained within the ADC. To search through all the repository metadata we query the DataONE search index (Apache SOLR search engine). SOLR is the same underlying mechanism that DataONE uses in the online tool and can create complex logical query conditions. 
+DataOne metrics API can only provide data package DOIs with citations, and can not provide a comprehensive list of all data package DOIs contained within the ADC. To search through all the repository metadata we query the DataONE search index (Apache SOLR search engine). SOLR is the same underlying mechanism that DataONE uses in the online tool and can create complex logical query conditions.
 
 ::: callout-tip
 Call `dataone::getQueryEngineDescription(cn, "solr")` to return a complete list of searchable SOLR values
@@ -384,7 +381,7 @@ write.csv(citations_springer, path_springer, row.names = F)
 
 ### Dealing with API request errors
 
-The `tryCatch()` functions in the above search `for` loops records errors produced from any API request. The corresponding DOIs are extracted and rerun through `scythe` a second time.  When running the DOIs with HTTP errors through Scopus a second time we discovered a small bug in the `scythe` code which was subsequently fixed.
+The `tryCatch()` functions in the above search `for` loops records errors produced from any API request. The corresponding DOIs are extracted and rerun through `scythe` a second time. When running the DOIs with HTTP errors through Scopus a second time we discovered a small bug in the `scythe` code which was subsequently fixed.
 
 ```{r read_saved_scythe_results, eval=T}
 #| code-fold: true
@@ -400,6 +397,15 @@ for(i in source_list){
       }
 }
 
+# Extract DOIs that error during scythe queries (only create if errors recorded)
+for(i in source_list){
+  source <- eval(parse(text = paste0("cits_", i)))
+  if(sum(is.na(source$article_id)) > 0){
+    assign(paste0("doi_error_", i),
+           source[is.na(source$article_id),"dataset_id"]$dataset_id)
+    }  
+}
+
 # read in saved combined results if already exist, create and save if not
 if(file.exists(path_all)) {
   scythe_cit <- read_csv(path_all)
@@ -413,14 +419,7 @@ if(file.exists(path_all)) {
 }
   
 
-# Extract DOIs that error during scythe queries (only create if errors recorded)
-for(i in source_list){
-  source <- eval(parse(text = paste0("cits_", i)))
-  if(sum(is.na(source$article_id)) > 0){
-    assign(paste0("doi_error_", i),
-           source[is.na(source$article_id),"dataset_id"]$dataset_id)
-    }  
-}
+
 ```
 
 ::: callout-note
@@ -597,7 +596,6 @@ knitr::kable(source_prct_overlap_2022_07_14,
 
 ```
 
-
 #### How Many Dataset Citations Are Unique to Each Source?
 
 ```{r unique_citations_by_source, eval = TRUE}
@@ -651,7 +649,7 @@ knitr::kable(unique_sum_tbl,
              col.names = c("Source", "Unique Citations"))
 ```
 
-xDD found `r nrow(unique_xdd)` unique citations not found in Scoupus, Springer, or PLOS digital libraries. The total number of unique citations returned by `scythe` is `r unique_sum_tbl[5,2]`. 
+xDD found `r nrow(unique_xdd)` unique citations not found in Scoupus, Springer, or PLOS digital libraries. The total number of unique citations returned by `scythe` is `r unique_sum_tbl[5,2]`.
 
 ### How Many Citations Found By `scythe` Are Already Known to DataOne Metrics Service?
 
@@ -663,7 +661,7 @@ xDD found `r nrow(unique_xdd)` unique citations not found in Scoupus, Springer, 
 #| label: fig-dataone-metric-report
 
 
-dataone_cit_source <- readr::read_csv(file.path("data/dataone_citations_reporter.csv"))
+dataone_cit_source <- readr::read_csv(file.path("data/dataone_cits_report_2022_07_25.csv"))
 
 # source_id = 'Unique identifier to the source dataset / document / article that cited the target dataset '
 # target_id = 'Unique identifier to the target DATAONE dataset. This is the dataset that was cited.'
@@ -729,9 +727,6 @@ knitr::kable(scythe_in_do_sum,
 
 *Query CrossRef to see if scythe results were reported*
 
-
-
-
 3)  Does the prevalence of data citations differ among disciplines (enviro vs SS)?
 
     -   Use ADC discipline classifications
@@ -747,7 +742,7 @@ knitr::kable(scythe_in_do_sum,
 
 [Root of ADC discipline semantics annotations](https://bioportal.bioontology.org/ontologies/ADCAD/?p=classes&conceptid=root) Classes/ID is where to look for query specifics. "Here's an example SOLR query that looks for two of those disciplines:
 
-```{r}
+```
 https://cn.dataone.org/cn/v2/query/solr/?q=sem_annotation:*ADCAD_00077+OR+sem_annotation:*ADCAD_00005&fl=identifier,formatId,sem_annotation
 ```
 
@@ -772,6 +767,7 @@ queryParamList <- list(q = "id:doi* AND (*:* NOT obsoletedBy:*)",
 # send query to Solr, return results as dataframe. parse = T returns list column, F returns chr value
 solr_adc_sem <- dataone::query(mn, solrQuery=queryParamList, as="data.frame", parse=T)
 
+# POSSIBLE BREAK POINT - read in url
 # read in csv with coded discipline ontology
 adc_disc <- read.csv("https://raw.githubusercontent.com/NCEAS/adc-disciplines/main/adc-disciplines.csv") %>% 
   # use ontology id to build id url - add required amount of 0s to create 5 digit suffix
