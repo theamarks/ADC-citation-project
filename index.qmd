@@ -480,8 +480,6 @@ job::job({
 
 *Does increasing the number of sources we are searching result in more complete coverage/quality?*
 
-Interesting to add column with number of datasets in addition to citations
-
 ```{r raw_scythe_results, eval=T}
 #| code-fold: true
 #| label: tbl-raw
