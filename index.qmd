@@ -505,32 +505,31 @@ knitr::kable(scythe_sum,
 
 #### What is the Overlap in Citations Found Among Sources?
 
-We evaluated the redundancy in dataset citations found among sources by matching citations between source search results. A citation is defined by the unique combination of `article_id` and `dataset_id`. Percent overlap is the percent of total citations found in a source also found in a second source.
+We evaluated the redundancy in dataset citations found among sources by matching citations between source search results. **A citation is defined by the unique combination of `article_id` and `dataset_id`**. Percent overlap is the total number of citations found in a source also found in a second source, divided by the total number of citation found within the source.
 
 ```{r source_overlap}
 #| code-fold: true
 
+# summarize the sources that each citation is found in for table
 overlap <- scythe_cit %>% 
   group_by(dataset_id, article_id) %>% 
   summarize(source_combination = paste(source, collapse = ", ", sep = ",")) %>% 
   group_by(source_combination) %>% 
   summarize(n = n())
 
+# separate source column into columns for each source
 overlap2 <- scythe_cit %>% 
   pivot_wider(id_cols= !article_title, 
               names_from = source,
               values_from = source,
               values_fill = NA)
 
-
+# combine source columns into single column that contains overlap information
+# remove single source columns
 overlap3 <- overlap2 %>% 
-  mutate(source = paste(
-    ifelse(scopus == "scopus", "scopus", ""), 
-    ifelse(springer == "springer", "springer", ""), 
-    ifelse(plos == "plos", "plos", ""), 
-    ifelse(xdd == "xdd", "xdd", ""), 
-    sep = "-"
-))
+  mutate(source = apply(overlap2[3:6], 1, function(x) toString(na.omit(x)))) %>% 
+  select(-scopus, -springer, -plos, -xdd)
+
 
 
 # function to calculate percent of source citations also found in a second source
