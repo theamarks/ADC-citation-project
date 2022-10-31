@@ -507,7 +507,7 @@ knitr::kable(scythe_sum,
 
 We evaluated the redundancy in dataset citations found among sources by matching citations between source search results. **A citation is defined by the unique combination of `article_id` and `dataset_id`**. Percent overlap is the total number of citations found in a source also found in a second source, divided by the total number of citation found within the source.
 
-```{r source_overlap}
+```{r source_overlap, eval=TRUE}
 #| code-fold: true
 
 # summarize the sources that each citation is found in for table
@@ -531,7 +531,7 @@ overlap3 <- overlap2 %>%
   select(-scopus, -springer, -plos, -xdd)
 
 
-show_col(viridis(4, option = "C"))
+#show_col(viridis(4, option = "C"))
 overlap_color <- c("#AB2494FF", "#DE6065FF", "#FCA338FF", "#F0F921FF")
 ovrlp_vec <- setNames(overlap$n, as.character(overlap$source_combination))
 fit <- euler(ovrlp_vec, shape = "ellipse")
@@ -541,13 +541,13 @@ plot(fit,
      labels = c("PLOS", "Scopus", "Springer", "xDD"))
 
 # function to calculate percent of source citations also found in a second source
-calc_prct_overlap <- function(source_1, source_2) {
-  pairs <-
-    inner_join(source_1, source_2, by = c("article_id", "dataset_id"))
-  overlap <-
-    nrow(pairs) / nrow(source_1) # percent of source_1 total also found in source_2 (pairs)
-  return(overlap)
-}
+# calc_prct_overlap <- function(source_1, source_2) {
+#   pairs <-
+#     inner_join(source_1, source_2, by = c("article_id", "dataset_id"))
+#   overlap <-
+#     nrow(pairs) / nrow(source_1) # percent of source_1 total also found in source_2 (pairs)
+#   return(overlap)
+# }
 
 # Save summary table to output folder
 # write.csv(scythe_overlap_sum,
@@ -558,7 +558,6 @@ calc_prct_overlap <- function(source_1, source_2) {
 #           row.names = F)
 ```
 
-*Think about better graphic here. Possibly proportional Ven diagram* https://cran.r-project.org/web/packages/eulerr/vignettes/venn-diagrams.html
 
 ```{r prct_overlap_table, eval=TRUE, echo=FALSE}
 #| label: tbl-overlap
