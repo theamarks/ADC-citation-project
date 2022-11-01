@@ -508,13 +508,13 @@ knitr::kable(scythe_sum,
              col.names = c("Source", "Number of Citations", "Number of Datasets"))
 ```
 
-#### What is the Overlap in Citations Found Among Sources?
+#### Do Citation Sources Overlap in Coverage?
 
 We evaluated the redundancy in dataset citations found among sources by matching citations between source search results. **A citation is defined by the unique combination of `article_id` and `dataset_id`**. Percent overlap is the total number of citations found in a source also found in a second source, divided by the total number of citation found within the source.
 
 ```{r source_overlap, eval=TRUE}
 #| code-fold: true
-#| fig-cap: "Number of citations found in one or more sources"
+#| fig-cap: "Citation Source Overlap: Number of citations found in multiple sources and number of citations found uniquely in only one source."
 
 
 # summarize the sources that each citation is found in for table
@@ -604,73 +604,19 @@ overlap_table[,3:6] <- sapply(overlap_table[,3:6], function(x) x*100)
 
 knitr::kable(overlap_table, 
              col.names = c("Source", "Total Citations", "% in PLOS", "% in Scopus", "% in Springer", "% in xDD"), 
-             digits = 3)
+             digits = 1)
 ```
 
-#### How Many Dataset Citations Are Unique to Each Source?
-
-```{r unique_citations_by_source, eval = TRUE}
-#| code-fold: true
-
-unique_plos <- cits_plos %>% 
-  anti_join(cits_scopus, by = c("article_id", "dataset_id")) %>% 
-  anti_join(cits_springer, by = c("article_id", "dataset_id")) %>% 
-  anti_join(cits_xdd, by = c("article_id", "dataset_id")) %>% 
-  filter(!is.na(article_id))
-
-unique_scopus <- cits_scopus %>% 
-  anti_join(cits_plos, by = c("article_id", "dataset_id")) %>% 
-  anti_join(cits_springer, by = c("article_id", "dataset_id")) %>% 
-  anti_join(cits_xdd, by = c("article_id", "dataset_id")) %>% 
-  filter(!is.na(article_id))
-
-unique_springer <- cits_springer %>% 
-  anti_join(cits_plos, by = c("article_id", "dataset_id")) %>% 
-  anti_join(cits_scopus, by = c("article_id", "dataset_id")) %>% 
-  anti_join(cits_xdd, by = c("article_id", "dataset_id")) %>% 
-  filter(!is.na(article_id))
-  
-unique_xdd <- cits_xdd %>% 
-  anti_join(cits_plos, by = c("article_id", "dataset_id")) %>% 
-  anti_join(cits_scopus, by = c("article_id", "dataset_id")) %>% 
-  anti_join(cits_springer, by = c("article_id", "dataset_id")) %>% 
-  filter(!is.na(article_id))
-
-# combine unique citation tables
-unique_citations <- rbind(unique_plos, unique_scopus, unique_springer, unique_xdd)
-
-
-```
-
-```{r unique_citations_table, eval=TRUE, echo=FALSE}
-#| label: tbl-unique
-#| tbl-cap: "Number of citations only found within each source"
-
-
-# summarize unique citations
-unique_sum <- unique_citations %>% 
-  group_by(source) %>% 
-  summarize(unique_cit = n())
-
-unique_sum_tbl <- rbind(unique_sum, data.frame(source = "Total", unique_cit = sum(unique_sum$unique_cit)))
-
-unique_sum_tbl$source <- c("PLOS", "Scopus", "Springer", "xDD", "Total")
-
-knitr::kable(unique_sum_tbl,
-             col.names = c("Source", "Unique Citations"))
-```
-
-xDD found `r nrow(unique_xdd)` unique citations not found in Scoupus, Springer, or PLOS digital libraries. The total number of unique citations returned by `scythe` is `r unique_sum_tbl[5,2]`.
+Scopus found `r overlap[[which(overlap$source_combination == "scopus"), "n"]]` unique citations not found in any other digital libraries. Springer found `r overlap[[which(overlap$source_combination == "springer"), "n"]]`, PLOS `r overlap[[which(overlap$source_combination == "plos"), "n"]]`, and xDD `r overlap[[which(overlap$source_combination == "xdd"), "n"]]` unique citations respectfully. The total number of unique citations returned by `scythe` is `r sum(overlap$n)`.
 
 ### How Many Citations Found By `scythe` Are Already Known to DataOne Metrics Service?
 
-`dataone_cit_source` came from Rushiraj with 2035 observations. I am still confused on the back end set up of how these citations are truly being generated. `dataone_cit_source` has the record of how citations entered the DataOne Metrics Service: `Crossref`, `Metrics Service Ingest`, and ORCID. `Metrics Service Ingest` is previous `scythe` runs. I can cross compare the `scythe` citation results with both DataONe metrics citation lists and look at the distribution of citation sources.
+`dataone_cit_source` came from Rushiraj with 2035 observations. `dataone_cit_source` has the record of how citations entered the DataOne Metrics Service: `Crossref`, `Metrics Service Ingest`, and ORCID. `Metrics Service Ingest` is previous `scythe` runs. I cross referenced the `scythe` citation results with both DataOne metrics citation lists and look at the distribution of citation sources.
 
 ```{r new_scythe_citations, eval = T}
 #| code-fold: true
 #| fig-cap: "Dataset Citation Reporting Sources From the DataOne Arctic Data Center Metrics Service"
 #| label: fig-dataone-metric-report
-
 
 dataone_cit_source <- readr::read_csv(file.path("data/dataone_cits_report_2022_07_25.csv"))
 
@@ -706,7 +652,7 @@ do_cit_source_fig
 
 ```
 
-```{r scythe-already-in-dataone, eval=T}
+```{r scythe-already-in-dataone, eval=F}
 #| code-fold: true
 #| label: tbl-scythe-do-overlap
 #| tbl-cap: "Citations found by scythe that were previously recorded in DataOne Metrics Service"
@@ -728,7 +674,7 @@ knitr::kable(scythe_in_do_sum,
              col.names = c("Source", "Number of Citations"))
 ```
 
-`scythe` found `r nrow(scythe_cit_new)` new citations not currently in the DataOne Metrics Service. However, Table x and y indicate that citaitons found by previous scythe runs (`Metrics Service Injest`) are not being found by the current scythe run. Why are they missing? Do results from DataCite query overwrite previous `Metrics Service Ingest` observations? MIs `scythe` the only source for `Metrics Service Injest`?
+`scythe` found `x` new citations not currently in the DataOne Metrics Service. However, Table x and y indicate that citaitons found by previous scythe runs (`Metrics Service Injest`) are not being found by the current scythe run. Why are they missing? Do results from DataCite query overwrite previous `Metrics Service Ingest` observations? MIs `scythe` the only source for `Metrics Service Injest`?
 
 *This could be a figure - proportion columns*
 
