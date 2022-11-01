@@ -85,6 +85,8 @@ library(ggplot2)
 library(htmltools)
 library(eulerr)
 library(dataone)
+library(scales)
+library(viridis)
 # library(scythe) # published version of package
 
 # install development version of scythe package with added xdd library
@@ -110,6 +112,9 @@ path_xdd <- file.path(output_directory, paste0("scythe_", date, "_xdd.csv"))
 
 # path to all scythe results w/ errors removed
 path_all <- file.path(output_directory, paste0("scythe_", date, "_all_noerr.csv"))
+
+# path to source overlap
+path_overlap <- file.path(output_directory, paste0("scythe_", date, "_prct_overlap.csv"))
 ```
 
 ## Data Collection
@@ -509,6 +514,8 @@ We evaluated the redundancy in dataset citations found among sources by matching
 
 ```{r source_overlap, eval=TRUE}
 #| code-fold: true
+#| fig-cap: "Number of citations found in one or more sources"
+
 
 # summarize the sources that each citation is found in for table
 overlap <- scythe_cit %>% 
@@ -518,53 +525,82 @@ overlap <- scythe_cit %>%
   summarize(n = n())
 
 # separate source column into columns for each source
-overlap2 <- scythe_cit %>% 
-  pivot_wider(id_cols= !article_title, 
-              names_from = source,
-              values_from = source,
-              values_fill = NA)
+# overlap2 <- scythe_cit %>% 
+#   pivot_wider(id_cols= !article_title, 
+#               names_from = source,
+#               values_from = source,
+#               values_fill = NA)
 
 # combine source columns into single column that contains overlap information
 # remove single source columns
-overlap3 <- overlap2 %>% 
-  mutate(source = apply(overlap2[3:6], 1, function(x) toString(na.omit(x)))) %>% 
-  select(-scopus, -springer, -plos, -xdd)
+# overlap3 <- overlap2 %>% 
+#   mutate(source = apply(overlap2[3:6], 1, function(x) toString(na.omit(x)))) %>% 
+#   select(-scopus, -springer, -plos, -xdd)
 
-
-#show_col(viridis(4, option = "C"))
+# Create euler diagram of overlap
+# Color blind friendly color pallet
+#show_col(viridis(30, option = "C"))
 overlap_color <- c("#AB2494FF", "#DE6065FF", "#FCA338FF", "#F0F921FF")
 ovrlp_vec <- setNames(overlap$n, as.character(overlap$source_combination))
-fit <- euler(ovrlp_vec, shape = "ellipse")
+fit <- euler(ovrlp_vec)
 plot(fit, 
      quantities = TRUE,
      fills = list(fill = overlap_color),
      labels = c("PLOS", "Scopus", "Springer", "xDD"))
 
-# function to calculate percent of source citations also found in a second source
-# calc_prct_overlap <- function(source_1, source_2) {
-#   pairs <-
-#     inner_join(source_1, source_2, by = c("article_id", "dataset_id"))
-#   overlap <-
-#     nrow(pairs) / nrow(source_1) # percent of source_1 total also found in source_2 (pairs)
-#   return(overlap)
-# }
 
-# Save summary table to output folder
-# write.csv(scythe_overlap_sum,
-#           file.path(
-#             output_directory,
-#             paste0("scythe_", date, "_prct_overlap.csv")
-#           ),
-#           row.names = F)
 ```
 
 
 ```{r prct_overlap_table, eval=TRUE, echo=FALSE}
 #| label: tbl-overlap
 #| tbl-cap: "Percent overlap between Scythe sources"
-source_prct_overlap_2022_07_14 <- read_csv("./output/scythe_2022-07-14_prct_overlap.csv")
-source_prct_overlap_2022_07_14$source <- c("PLOS", "Scopus", "Springer", "xDD")
-knitr::kable(source_prct_overlap_2022_07_14, 
+
+# function to calculate percent of source citations also found in a second source
+calc_prct_overlap <- function(source_1, source_2) {
+  pairs <-
+    inner_join(source_1, source_2, by = c("article_id", "dataset_id"))
+  overlap <-
+    nrow(pairs) / nrow(source_1) # percent of source_1 total also found in source_2 (pairs)
+  return(overlap)
+}
+
+# build dataframe with overlap calcs
+scythe_overlap_sum <- scythe_cit %>%
+  mutate("citation_df" = ifelse(
+    source == "plos",
+    "cits_plos",
+    ifelse(
+      source == "scopus",
+      "cits_scopus",
+      ifelse(source == "springer", "cits_springer", "cits_xdd")
+    )
+  )) %>%
+  group_by(source, citation_df) %>%
+  summarise(
+    "total_citations" = n(),
+    "prct_in_plos" = calc_prct_overlap(eval(parse(text = citation_df)),
+                                       cits_plos),
+    "prct_in_scopus" = calc_prct_overlap(eval(parse(text = citation_df)),
+                                         cits_scopus),
+    "prct_in_springer" = calc_prct_overlap(eval(parse(text = citation_df)),
+                                           cits_springer),
+    "prct_in_xdd" = calc_prct_overlap(eval(parse(text = citation_df)),
+                                      cits_xdd)
+  ) %>%
+  select(1, 3:7)
+
+# read in saved overlap file, or write one
+if(file.exists(path_overlap)){
+  overlap_table <- read_csv(file.path(path_overlap))
+} else{
+  write_csv(scythe_overlap_sum, file.path(path_overlap), row.names = F)
+}
+
+# Overlap table
+overlap_table$source <- c("PLOS", "Scopus", "Springer", "xDD")
+
+knitr::kable(overlap_table, 
              col.names = c("Source", "Total Citations", "% in PLOS", "% in Scopus", "% in Springer", "% in xDD"), 
              digits = 3)
 ```
