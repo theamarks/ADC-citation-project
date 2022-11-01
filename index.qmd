@@ -611,27 +611,27 @@ Scopus found `r overlap[[which(overlap$source_combination == "scopus"), "n"]]` u
 
 ### How Many Citations Found By `scythe` Are Already Known to DataOne Metrics Service?
 
-`dataone_cit_source` came from Rushiraj with 2035 observations. `dataone_cit_source` has the record of how citations entered the DataOne Metrics Service: `Crossref`, `Metrics Service Ingest`, and ORCID. `Metrics Service Ingest` is previous `scythe` runs. I cross referenced the `scythe` citation results with both DataOne metrics citation lists and look at the distribution of citation sources.
+`do_cit_src_2022_07_25` came from Rushiraj with 2035 observations. `do_cit_src_2022_07_25` has the record of how citations entered the DataOne Metrics Service: `Crossref`, `Metrics Service Ingest`, and ORCID. `Metrics Service Ingest` is previous `scythe` runs. I cross referenced the `scythe` citation results with both DataOne metrics citation lists and look at the distribution of citation sources.
 
 ```{r new_scythe_citations, eval = T}
 #| code-fold: true
 #| fig-cap: "Dataset Citation Reporting Sources From the DataOne Arctic Data Center Metrics Service"
 #| label: fig-dataone-metric-report
 
-dataone_cit_source <- readr::read_csv(file.path("data/dataone_cits_report_2022_07_25.csv"))
+do_cit_src_2022_07_25 <- readr::read_csv(file.path("data/dataone_cits_report_2022_07_25.csv"))
 
 # source_id = 'Unique identifier to the source dataset / document / article that cited the target dataset '
 # target_id = 'Unique identifier to the target DATAONE dataset. This is the dataset that was cited.'
 
 # clean up dataone citation reporter csv. Remove extra ' from character strings
-dataone_cit_source <- as.data.frame(lapply(dataone_cit_source, gsub, pattern = "*'*", replacement = ""))
+do_cit_src_2022_07_25 <- as.data.frame(lapply(do_cit_src_2022_07_25, gsub, pattern = "*'*", replacement = ""))
 
-dataone_cit_source %<>%
+do_cit_src_2022_07_25 %<>%
   rename("article_id" = source_id, # rename dataone metrics citations columns to match scythe results
          "dataset_id" = target_id) %>% 
-  mutate(reporter = sub("^http.*","ORCiD", dataone_cit_source$reporter))
+  mutate(reporter = sub("^http.*","ORCiD", do_cit_src_2022_07_25$reporter))
 
-do_cit_source_sum <- dataone_cit_source %>% 
+do_cit_source_sum <- do_cit_src_2022_07_25 %>% 
   group_by(reporter) %>% 
   summarise(num_cit = n()) 
 
@@ -657,13 +657,13 @@ do_cit_source_fig
 #| label: tbl-scythe-do-overlap
 #| tbl-cap: "Citations found by scythe that were previously recorded in DataOne Metrics Service"
 
-scythe_cit_new <- anti_join(unique_citations, dataone_cit_source, by = c("article_id", "dataset_id")) %>% 
+scythe_cit_new <- anti_join(unique_citations, do_cit_src_2022_07_25, by = c("article_id", "dataset_id")) %>% 
   na.omit()
 # have 642 new scythe citations not found in dataone metrics
 
 # Citations in dataone metrics that also show up in latest scythe search `unique_citations`
 # These are the dataone metrics and scythe overlap citaitons 
-scythe_in_dataone <- semi_join(dataone_cit_source, unique_citations, by = c("article_id", "dataset_id"))
+scythe_in_dataone <- semi_join(do_cit_src_2022_07_25, unique_citations, by = c("article_id", "dataset_id"))
 
 
 scythe_in_do_sum <- scythe_in_dataone %>% 
