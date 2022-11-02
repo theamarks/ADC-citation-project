@@ -71,17 +71,17 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE, message = FALSE)
 ```{r analysis_setup, eval=T}
 #| code-fold: true
 
-# load libraries
-source(file.path("./R/load_pkgs.R"))
-
-# create directories and file paths 
-source(file.path("./R/analysis_paths.R"))
-
 # set date here. Used throughout data collection, saving, and analysis. YYYY-MM-DD
 date <- "2022-07-14"
 
 # vector of APIs used in analysis
 source_list <- c("scopus", "springer", "plos", "xdd")
+
+# load libraries
+source(file.path("./R/load_pkgs.R"))
+
+# create directories and file paths 
+source(file.path("./R/analysis_paths.R"))
 
 ```
 
