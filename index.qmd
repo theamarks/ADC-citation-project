@@ -492,19 +492,6 @@ overlap <- scythe_cit %>%
   group_by(source_combination) %>% 
   summarize(n = n())
 
-# separate source column into columns for each source
-# overlap2 <- scythe_cit %>% 
-#   pivot_wider(id_cols= !article_title, 
-#               names_from = source,
-#               values_from = source,
-#               values_fill = NA)
-
-# combine source columns into single column that contains overlap information
-# remove single source columns
-# overlap3 <- overlap2 %>% 
-#   mutate(source = apply(overlap2[3:6], 1, function(x) toString(na.omit(x)))) %>% 
-#   select(-scopus, -springer, -plos, -xdd)
-
 # Create euler diagram of overlap
 # Color blind friendly color pallet
 #show_col(viridis(30, option = "C"))
