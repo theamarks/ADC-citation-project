@@ -63,66 +63,25 @@ Run ADC DOIs through `scythe` & compare to known DataONE metrics citations. Know
 
 ## R Setup
 
-```{r setup, include=F}
+```{r md_setup, include=F}
 knitr::opts_chunk$set(echo = TRUE, eval = FALSE, message = FALSE)
 
 ```
 
-```{r package_library, eval=TRUE}
+```{r analysis_setup, eval=T}
 #| code-fold: true
 
-library(readr)
-library(jsonlite)
-library(tidyr)
-library(dplyr)
-library(dataone)
-library(job)
-library(magrittr)
-library(readr)
-library(stringr)
-library(purrr)
-library(ggplot2)
-library(htmltools)
-library(eulerr)
-library(dataone)
-library(scales)
-library(viridis)
-# library(scythe) # published version of package
+# load libraries
+source(file.path("./R/load_pkgs.R"))
 
-# install development version of scythe package with added xdd library
-devtools::install_github("dataoneorg/scythe@develop")
-
-# install dev version of rcrossref package with update API for `scythe::write_citation_pairs` dependency
-devtools::install_github("ropensci/rcrossref@api_update")
-```
-
-```{r set_values_directories, eval=T}
-#| code-fold: true
-
-# create output directory
-output_directory <- file.path("./output")
-dir.create(path = output_directory, showWarnings = F)
-
+# create directories and file paths 
+source(file.path("./R/analysis_paths.R"))
 
 # set date here. Used throughout data collection, saving, and analysis. YYYY-MM-DD
 date <- "2022-07-14"
+
+# vector of APIs used in analysis
 source_list <- c("scopus", "springer", "plos", "xdd")
-
-# Set up result file paths
-path_scopus <- file.path(output_directory, paste0("scythe_", date, "_scopus.csv"))
-path_springer <- file.path(output_directory, paste0("scythe_", date, "_springer.csv"))
-path_plos <- file.path(output_directory, paste0("scythe_", date, "_plos.csv"))
-path_xdd <- file.path(output_directory, paste0("scythe_", date, "_xdd.csv"))
-
-# path to all scythe results w/ errors removed
-path_all <- file.path(output_directory, paste0("scythe_", date, "_all_noerr.csv"))
-
-# path to source overlap
-path_overlap <- file.path(output_directory, paste0("scythe_", date, "_prct_overlap.csv"))
-
-# create data directory
-data_dir <- file.path("./data")
-dir.create(path = data_dir, showWarnings = F)
 
 ```
 
