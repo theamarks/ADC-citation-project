@@ -388,6 +388,38 @@ job::job({
 
 The `tryCatch()` functions in the above search `for` loops records errors produced from any API request. The corresponding DOIs are extracted and rerun through `scythe` a second time. When running the DOIs with HTTP errors through Scopus a second time we discovered a small bug in the `scythe` code which was subsequently fixed.
 
+```{r pull_errors_rerun}
+# Extract DOIs that error during scythe queries
+
+# read in raw results .csv into a list of dataframes
+mk_result_list <- function(asource){
+  path <- eval(parse(text = paste0("path_", asource)))
+  if(file.exists(path)){
+    assign(paste0("cits_",asource), read_csv(file.path(path)))
+  }
+}
+results_list <- lapply(source_list, FUN = mk_result_list)
+# assign source names to list elements
+names(results_list) <- source_list
+
+# pull dataframe rows that had API request errors
+did_this_error <- function(adf){
+  error_index <- is.na(adf$article_id)
+  adf[error_index, "dataset_id"]
+}
+error_list <- lapply(results_list, FUN = did_this_error)
+
+# run error DOIs back through scythe
+query_errors <- function(adf, asource){
+  if(nrow(adf) > 0){
+    scythe::citation_search(adf$dataset_id, asource)
+  } 
+}  
+                                 
+error_query_results <- sapply(error_list, FUN = query_errors, source_list)
+```
+
+
 ```{r read_saved_scythe_results, eval=T, message=FALSE, warning=FALSE}
 #| code-fold: true
 
