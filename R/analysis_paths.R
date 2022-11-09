@@ -10,8 +10,11 @@ path_springer <- file.path(output_directory, paste0("scythe_", date, "_springer.
 path_plos <- file.path(output_directory, paste0("scythe_", date, "_plos.csv"))
 path_xdd <- file.path(output_directory, paste0("scythe_", date, "_xdd.csv"))
 
+# path to write error re-run results
+path_error <- file.path(output_directory, paste0("scythe_", date, "_"))
+
 # path to all scythe results w/ errors removed
-path_all <- file.path(output_directory, paste0("scythe_", date, "_all_noerr.csv"))
+path_all <- file.path(output_directory, paste0("scythe_", date, "_all_analysis.csv"))
 
 # path to source overlap
 path_overlap <- file.path(output_directory, paste0("scythe_", date, "_prct_overlap.csv"))
