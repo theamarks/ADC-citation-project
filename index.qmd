@@ -431,7 +431,7 @@ error_query_results <- sapply(error_list, FUN = query_errors, source_list)
 
 write_error_results <- function(adf, asource){
   if(!is.null(adf)) {
-    write.csv(adf, paste0(path_error, asource, "_err_res.csv"))
+    write.csv(adf, paste0(path_error, asource, "_err_res.csv"), row.names = F)
   }}
 
 map2(error_query_results, source_list, write_error_results)
@@ -506,10 +506,15 @@ job::job({
 for(i in source_list){
     path <- eval(parse(text = paste0("path_", i)))
     if(file.exists(path)){
-      assign(paste0("cits_",i), read_csv(file.path(path)))
+      assign(paste0("cits_",i), 
+             if(file.exists(paste0(path_error, i, "_err_res.csv"))){
+               rbind(read_csv(file.path(path)), 
+                     read_csv(file.path(paste0(path_error, i, "_err_res.csv"))))
+             } else(read_csv(file.path(path)))
+      )
     } else{print(paste0(i, " saved scythe results do not exsist in output directory"))
       }
-}
+    }
 
 # read in saved combined results if already exist, create and save if not
 if(file.exists(path_all)) {
@@ -524,7 +529,6 @@ if(file.exists(path_all)) {
   write_csv(scythe_cit, path_all)
 }
 
-# 
 ```
 
 ```{r add_error_results}
