@@ -4,9 +4,18 @@ title: |
   
   Searching for Elusive Arctic Dataset Citations
 subtitle: "Data Fellowship Project 2022"
-author: "Althea Marks"
-
-affiliation: "NCEAS"
+author: 
+  - name: Althea Marks
+    orcid: 0000-0002-9370-9128
+    email: marks@nceas.ucsb.edu
+    affiliations:
+      - name: University of California Santa Barbara
+        department: National Center for Ecological Analysis and Synthesis
+        address: 1021 Anacapa St
+        city: Santa Barbara
+        state: CA
+        postal-code: 93101
+        url: https://www.nceas.ucsb.edu/
 date: "`r Sys.Date()`"
 format: 
   html: 
