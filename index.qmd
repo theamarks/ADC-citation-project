@@ -86,11 +86,11 @@ source(file.path("./R/analysis_paths.R"))
 
 ```
 
-## Data Collection
+## Search For Citations
 
-### Retrieve all ADC citations with GET API request body
+### Current known ADC citations
 
-metrics service production endpoint: <https://logproc-stage-ucsb-1.test.dataone.org/metrics> documentation: <https://app.swaggerhub.com/apis/nenuji/data-metrics/1.0.0.3>
+Use GET API request body in DataOne Metrics Service production endpoint: <https://logproc-stage-ucsb-1.test.dataone.org/metrics> documentation: <https://app.swaggerhub.com/apis/nenuji/data-metrics/1.0.0.3>
 
 ```{r get_request_citations}
 #| code-fold: true
@@ -165,7 +165,7 @@ write_csv(dataone_cit, file.path(output_directory,
                                  paste0("dataone_metrics_cit_", date,".csv")))
 ```
 
-### Get all ADC DOIs from SOLR query
+### Query SOLR - all ADC DOIs
 
 DataOne metrics API can only provide data package DOIs with citations, and can not provide a comprehensive list of all data package DOIs contained within the ADC. To search through all the repository metadata we query the DataONE search index (Apache SOLR search engine). SOLR is the same underlying mechanism that DataONE uses in the online tool and can create complex logical query conditions.
 
@@ -199,7 +199,7 @@ write.csv(solr_adc_result, file.path(output_directory,
 
 *SOLR query does not yet include date search term to align with `date` object. Using `date` to save and read in .csv*
 
-### Run all ADC dataset DOIs through `scythe` libraries
+### Run DOIs through `scythe`
 
 ```{r All_ADC_DOIs}
 #| code-fold: true
@@ -384,11 +384,12 @@ job::job({
 
 ```
 
-### Dealing with API request errors
+### Dealing with errors
 
-The `tryCatch()` functions in the above search `for` loops records errors produced from any API request. The corresponding DOIs are extracted and rerun through `scythe` a second time. When running the DOIs with HTTP errors through Scopus a second time we discovered a small bug in the `scythe` code which was subsequently fixed.
+The `tryCatch()` functions in the above search `for` loops records errors produced from any API request or scythe function. The corresponding DOIs are extracted and rerun through `scythe` a second time. When running the DOIs with errors through Scopus we discovered two bugs in the `scythe` code. The first bug was fixed [here](https://github.com/DataONEorg/scythe/commit/59bb1944bd755c2e3cd6258f02025ad1d0515723). The second bug was a query return that did not have a DOI (conference proceedings).
 
 ```{r pull_errors_rerun}
+#| code-fold: true
 # Extract DOIs that error during scythe queries
 
 # read in raw results .csv into a list of dataframes
@@ -412,6 +413,7 @@ error_list <- lapply(results_list, FUN = did_this_error)
 # run error DOIs back through scythe
 query_errors <- function(adf, asource){
   if(nrow(adf) > 0){
+    keyring::keyring_unlock("scythe", key)
     scythe::citation_search(adf$dataset_id, asource)
   } 
 }  
@@ -419,54 +421,14 @@ query_errors <- function(adf, asource){
 error_query_results <- sapply(error_list, FUN = query_errors, source_list)
 ```
 
-
-```{r read_saved_scythe_results, eval=T, message=FALSE, warning=FALSE}
-#| code-fold: true
-
-# read in saved scythe results for all sources `cits_source` objects created
-# reduces dependency on global environment objects - can pick up analysis here instead of rerunning scythe
-
-for(i in source_list){
-    path <- eval(parse(text = paste0("path_", i)))
-    if(file.exists(path)){
-      assign(paste0("cits_",i), read_csv(file.path(path)))
-    } else{print(paste0(i, " saved scythe results do not exsist in output directory"))
-      }
-}
-
-# Extract DOIs that error during scythe queries (only create if errors recorded)
-for(i in source_list){
-  source <- eval(parse(text = paste0("cits_", i)))
-  if(sum(is.na(source$article_id)) > 0){
-    assign(paste0("doi_error_", i),
-           source[is.na(source$article_id),"dataset_id"]$dataset_id)
-    }  
-}
-
-
-
-# read in saved combined results if already exist, create and save if not
-if(file.exists(path_all)) {
-  scythe_cit <- read_csv(path_all)
-} else{
-  scythe_cit <- rbind(cits_scopus, 
-                      cits_springer,
-                      cits_plos,
-                      cits_xdd) %>%
-    filter(!is.na(article_id)) # remove NA/error observations
-           #grepl(dataset_id, pattern = "^10.18739.*")) # remove datasets not housed on the 
-  write_csv(scythe_cit, path_all)
-}
-
-# 
-```
-
 ::: callout-note
-Running a second round of API queries using DOIs associated with 1st round API request errors is not automated here. Future script users will need to adjust the following code chunk. Will need to combine 1st and 2nd run results for analysis.
+Running a second round of API queries using error DOIs is semi-automated above. Future script users will likely need to adjust the above code chunk to combine 1st and 2nd run results for analysis.
 :::
 
 ```{r run_failed_query_dois_again}
 #| code-fold: true
+
+# This code was used during the '2022-07-08' scythe run. 
 ## Scopus
 citations_error_scopus <- data.frame()
 job::job({
@@ -515,9 +477,39 @@ job::job({
 
 ## Analysis / Results
 
-### Does Addition of xDD Improve Quality & Scope of ADC dataset Citations?
+### Does addition of xDD improve quality & scope of ADC dataset citations?
 
 *Does increasing the number of sources we are searching result in more complete coverage/quality?*
+
+```{r read_saved_scythe_results, eval=T, message=FALSE, warning=FALSE}
+#| code-fold: true
+
+# read in saved scythe results for all sources `cits_source` objects created
+# reduces dependency on global environment objects - can pick up analysis here instead of rerunning scythe
+
+for(i in source_list){
+    path <- eval(parse(text = paste0("path_", i)))
+    if(file.exists(path)){
+      assign(paste0("cits_",i), read_csv(file.path(path)))
+    } else{print(paste0(i, " saved scythe results do not exsist in output directory"))
+      }
+}
+
+# read in saved combined results if already exist, create and save if not
+if(file.exists(path_all)) {
+  scythe_cit <- read_csv(path_all)
+} else{
+  scythe_cit <- rbind(cits_scopus, 
+                      cits_springer,
+                      cits_plos,
+                      cits_xdd) %>%
+    filter(!is.na(article_id)) # remove NA/error observations
+           #grepl(dataset_id, pattern = "^10.18739.*")) # remove datasets not housed on the 
+  write_csv(scythe_cit, path_all)
+}
+
+# 
+```
 
 ```{r raw_scythe_results, eval=T}
 #| code-fold: true
@@ -542,7 +534,7 @@ knitr::kable(scythe_sum,
              col.names = c("Source", "Number of Citations", "Number of Datasets"))
 ```
 
-#### Do Citation Sources Overlap in Coverage?
+#### Do citation sources overlap in coverage?
 
 We evaluated the redundancy in dataset citations found among sources by matching citations between source search results. **A citation is defined by the unique combination of `article_id` and `dataset_id`**. Percent overlap is the total number of citations found in a source also found in a second source, divided by the total number of citation found within the source.
 
@@ -615,7 +607,8 @@ scythe_overlap_sum <- scythe_cit %>%
 if(file.exists(path_overlap)){
   overlap_table <- read_csv(file.path(path_overlap))
 } else{
-  write_csv(scythe_overlap_sum, file.path(path_overlap), row.names = F)
+  write_csv(scythe_overlap_sum, file.path(path_overlap))
+  overlap_table <- read_csv(file.path(path_overlap))
 }
 
 
@@ -630,9 +623,9 @@ knitr::kable(overlap_table,
 
 Scopus found `r overlap[[which(overlap$source_combination == "scopus"), "n"]]` unique citations not found in any other digital libraries. Springer found `r overlap[[which(overlap$source_combination == "springer"), "n"]]`, PLOS `r overlap[[which(overlap$source_combination == "plos"), "n"]]`, and xDD `r overlap[[which(overlap$source_combination == "xdd"), "n"]]` unique citations respectfully. The total number of unique citations returned by `scythe` is `r sum(overlap$n)`.
 
-### How Many Citations Found By `scythe` Are Already Known to DataOne Metrics Service?
+### How many citations found by `scythe` are already known to DataOne Metrics Service?
 
-`do_cit_src_07` came from Rushiraj with `r nrow(do_cit)` observations. `do_cit_src_07` has the record of how citations entered the DataOne Metrics Service: `Crossref`, `Metrics Service Ingest`, and ORCID. `Metrics Service Ingest` is previous `scythe` runs. I cross referenced the `scythe` citation results with both DataOne metrics citation lists and look at the distribution of citation sources.
+`do_cit_src_07` came from Rushiraj. `do_cit_src_07` has the record of how citations entered the DataOne Metrics Service: `Crossref`, `Metrics Service Ingest`, and ORCID. `Metrics Service Ingest` is previous `scythe` runs. I cross referenced the `scythe` citation results with both DataOne metrics citation lists and look at the distribution of citation sources.
 
 ```{r new_scythe_citations, eval = T}
 #| code-fold: true
