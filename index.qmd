@@ -428,6 +428,13 @@ query_errors <- function(adf, asource){
 }  
                                  
 error_query_results <- sapply(error_list, FUN = query_errors, source_list)
+
+write_error_results <- function(adf, asource){
+  if(!is.null(adf)) {
+    write.csv(adf, paste0(path_error, asource, "_err_res.csv"))
+  }}
+
+map2(error_query_results, source_list, write_error_results)
 ```
 
 ::: callout-note
@@ -519,6 +526,11 @@ if(file.exists(path_all)) {
 
 # 
 ```
+
+```{r add_error_results}
+scythe_cit <- rbind(scythe_cit, error_query_results)
+```
+
 
 ```{r raw_scythe_results, eval=T}
 #| code-fold: true
