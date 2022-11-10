@@ -501,7 +501,7 @@ job::job({
 #| code-fold: true
 
 # read in saved scythe results for all sources `cits_source` objects created
-# reduces dependency on global environment objects - can pick up analysis here instead of rerunning scythe
+# reduces dependency on global environment objects - can pick up analysis here instead of rerunning scythe. Add error re-run results if detected.
 
 for(i in source_list){
     path <- eval(parse(text = paste0("path_", i)))
@@ -529,10 +529,6 @@ if(file.exists(path_all)) {
   write_csv(scythe_cit, path_all)
 }
 
-```
-
-```{r add_error_results}
-scythe_cit <- rbind(scythe_cit, error_query_results)
 ```
 
 
@@ -648,6 +644,77 @@ knitr::kable(overlap_table,
 
 Scopus found `r overlap[[which(overlap$source_combination == "scopus"), "n"]]` unique citations not found in any other digital libraries. Springer found `r overlap[[which(overlap$source_combination == "springer"), "n"]]`, PLOS `r overlap[[which(overlap$source_combination == "plos"), "n"]]`, and xDD `r overlap[[which(overlap$source_combination == "xdd"), "n"]]` unique citations respectfully. The total number of unique citations returned by `scythe` is `r sum(overlap$n)`.
 
+
+### Citations by Research Discipline
+
+The ADC created a research discipline ontology to classify datasets. Here is the [root of ADC discipline semantics annotations](https://bioportal.bioontology.org/ontologies/ADCAD/?p=classes&conceptid=root). Classes/ID is where to look for query specifics. Below is an example SOLR query that looks for two of those disciplines:
+
+```
+https://cn.dataone.org/cn/v2/query/solr/?q=sem_annotation:*ADCAD_00077+OR+sem_annotation:*ADCAD_00005&fl=identifier,formatId,sem_annotation
+```
+
+::: callout-note
+Every single SS ID will need to be listed in the query list. Solr currently not set up to query umbrella SS ID yet. 
+:::
+
+Pull dataset discipline semantics from Solr. 
+
+```{r get_solr_discipline}
+#| code-fold: true
+# Run second Solr query to pull semantic annotations for 2022_08_10 DOIs
+
+# set coordinationg node
+cn <- dataone::CNode("PROD")
+
+# point to specific member node
+mn <- dataone::getMNode(cn, "urn:node:ARCTIC")
+
+# set up Solr query parameters
+queryParamList <- list(q = "id:doi* AND (*:* NOT obsoletedBy:*)",
+                       fl = "id,title,dateUploaded,datasource,sem_annotation",
+                       start ="0",
+                       rows = "100000")
+
+# send query to Solr, return results as dataframe. parse = T returns list column, F returns chr value
+solr_adc_sem <- dataone::query(mn, solrQuery=queryParamList, as="data.frame", parse=T)
+
+# POSSIBLE BREAK POINT - read in url
+# read in csv with coded discipline ontology
+disc_adc <- read.csv("https://raw.githubusercontent.com/NCEAS/adc-disciplines/main/adc-disciplines.csv") %>% 
+  # use ontology id to build id url - add required amount of 0s to create 5 digit suffix
+    mutate(an_uri = paste0("https://purl.dataone.org/odo/ADCAD_", 
+                           stringr::str_pad(id, 5, "left", pad = "0")))
+
+solr_adc_sem$category <- purrr::map(solr_adc_sem$sem_annotation, function(x){
+    t <- grep("*ADCAD*", x, value = TRUE)
+    cats <- c()
+    for (i in 1:length(t)){
+        z <- which(disc_adc$an_uri == t[i])
+        cats[i] <- disc_adc$discipline[z]
+        
+    }
+    return(cats)
+})
+
+# read in manual dataset discipline classifications. Remove extra columns
+disc_manual <- read_csv(file.path(data_dir, "adc-discipline-2022-10-27.csv"))[1:6]
+colnames(disc_manual)[1] <- "dataset_id"
+disc_col_names <- colnames(disc_manual)
+
+# extract discipline categories from single column to populate new columns
+disc_adc_wide <- solr_adc_sem %>% 
+  unnest_wider(category, names_sep ="_") %>% 
+  select(-sem_annotation, -datasource, -dateUploaded, -title) 
+colnames(disc_adc_wide) <- disc_col_names
+
+# join disc dataframes
+#disc_all <- rows_update(disc_adc_wide, disc_manual, by = 'id' , unmatched = "ignore")
+
+scythe_cit_disc_adc <- left_join(scythe_cit, disc_adc_wide, by = "dataset_id")
+  
+```
+
+
 ### How many citations found by `scythe` are already known to DataOne Metrics Service?
 
 `do_cit_src_07` came from Rushiraj. `do_cit_src_07` has the record of how citations entered the DataOne Metrics Service: `Crossref`, `Metrics Service Ingest`, and ORCID. `Metrics Service Ingest` is previous `scythe` runs. I cross referenced the `scythe` citation results with both DataOne metrics citation lists and look at the distribution of citation sources.
@@ -717,9 +784,6 @@ knitr::kable(scythe_in_do_sum,
 
 *This could be a figure - proportion columns*
 
-```{r}
-
-```
 
 *Query CrossRef to see if scythe results were reported*
 
@@ -732,128 +796,3 @@ knitr::kable(scythe_in_do_sum,
 
 5)  Do usage metrics (downloads and views) correlate well with citation metrics?
 
-## Next Steps
-
-    -   Analysis by discipline
-
-[Root of ADC discipline semantics annotations](https://bioportal.bioontology.org/ontologies/ADCAD/?p=classes&conceptid=root) Classes/ID is where to look for query specifics. "Here's an example SOLR query that looks for two of those disciplines:
-
-```
-https://cn.dataone.org/cn/v2/query/solr/?q=sem_annotation:*ADCAD_00077+OR+sem_annotation:*ADCAD_00005&fl=identifier,formatId,sem_annotation
-```
-
--   Matt Need to list every single SS ID in query list, not set up to query umbrella SS ID just yet
-
-```{r discipline_semantics}
-#| code-fold: true
-# Run second Solr query to pull semantic annotations for 2022_08_10 DOIs
-
-# set coordinationg node
-cn <- dataone::CNode("PROD")
-
-# point to specific member node
-mn <- dataone::getMNode(cn, "urn:node:ARCTIC")
-
-# set up Solr query parameters
-queryParamList <- list(q = "id:doi* AND (*:* NOT obsoletedBy:*)",
-                       fl = "id,title,dateUploaded,datasource,sem_annotation",
-                       start ="0",
-                       rows = "100000")
-
-# send query to Solr, return results as dataframe. parse = T returns list column, F returns chr value
-solr_adc_sem <- dataone::query(mn, solrQuery=queryParamList, as="data.frame", parse=T)
-
-# POSSIBLE BREAK POINT - read in url
-# read in csv with coded discipline ontology
-adc_disc <- read.csv("https://raw.githubusercontent.com/NCEAS/adc-disciplines/main/adc-disciplines.csv") %>% 
-  # use ontology id to build id url - add required amount of 0s to create 5 digit suffix
-    mutate(an_uri = paste0("https://purl.dataone.org/odo/ADCAD_", 
-                           stringr::str_pad(id, 5, "left", pad = "0")))
-
-solr_adc_sem$category <- purrr::map(solr_adc_sem$sem_annotation, function(x){
-    t <- grep("*ADCAD*", x, value = TRUE)
-    cats <- c()
-    for (i in 1:length(t)){
-        z <- which(adc_disc$an_uri == t[i])
-        cats[i] <- adc_disc$discipline[z]
-        
-    }
-    return(cats)
-})
-
-# extract discipline categories from single column to populate new columns
-adc_disc_wide <- solr_adc_sem %>% 
-    unnest_wider(category, names_sep ="_") %>% 
-    select(-sem_annotation)
-```
-
-```{r map_old_themes_to_ADCAD_ont}
-#| code-fold: true
-# key from old discipline categories to new ADCAD ontology - approved matches
-themes <- read_csv(file.path("data/old_themes_ADCAD_key.csv"))
-
-# read in csv with previous classifications
-old_cat <- read.csv(file.path("data/dataset_categorization.csv"))
-
-# replace old theme categories with new ADCAD ontology terms.
-# only replacing terms that don't need review (themes df), leave the rest. 
-new_cat <- old_cat %>% 
-  select(url, id)
-
-for(i in colnames(old_cat[7:11])) {
-  # sequence through column names
-  new_cat[[i]] <- purrr::map(old_cat[[i]], function(old_theme) {
-    if (old_theme %in% themes$old) {
-      # replace if old theme is listed
-      new_theme <-
-        themes$ADCAD[which(themes$old == old_theme)] # get corresponding new disc
-      return(new_theme) # use disc ontology term to populate column
-    } else{
-      if (old_theme == "") {
-        old_theme = NA
-      }
-      return(old_theme)
-    } # keep old_theme if review is needed
-  })
-}
-
-# unnest list columns
-new_cat %<>% 
-  unnest(cols = c("theme1", "theme2", "theme3", "theme4", "theme5"))
-
-# Add re-categorization to solr query results (adc_disc_wide)
-adc_disc_new <- adc_disc_wide %>% 
-  left_join(new_cat, by = "id") %>% 
-  mutate(url = url)
-
-# check if there is any overlapping entries between theme1 & category_1 etc.
-# overlap_cat1 <- adc_disc_new %>%
-#   filter(!is.na(theme1) & !is.na(category_1))
-# 
-# overlap_cat2 <- adc_disc_new %>%
-#   filter(!is.na(theme2) & !is.na(category_2))
-# 
-# overlap_cat3 <- adc_disc_new %>%
-#   filter(!is.na(theme3) & !is.na(category_3))
-# 
-# overlap_cat4 <- adc_disc_new %>%
-#   filter(!is.na(theme4) & !is.na(category_4))
-# 
-# overlap_cat5 <- adc_disc_new %>%
-#   filter(!is.na(theme5) & !is.na(category_5))
-# ^^ No overlap between two datasets
-
-# Combine discipline category columns + DOI
-adc_disc_ADCAD <- adc_disc_new %>% 
-  transmute(url = url,
-            id = id,
-            title = title,
-            disc_cat_1 = ifelse(!is.na(category_1), category_1, theme1),
-            disc_cat_2 = ifelse(!is.na(category_2), category_2, theme2),
-            disc_cat_3 = ifelse(!is.na(category_3), category_3, theme3),
-            disc_cat_4 = ifelse(!is.na(category_4), category_4, theme4),
-            disc_cat_5 = ifelse(!is.na(category_5), category_5, theme5)
-  )
-# Save results
-# write.csv(adc_disc_ADCAD, "./output/ADC_ADCAD_disciplines.csv", row.names = F)
-```
