@@ -94,7 +94,7 @@ source(file.path("./R/load_pkgs.R"))
 source(file.path("./R/analysis_paths.R"))
 
 # functions for data colleciton and analysis
-source(file.path(".R/functions.R"))
+source(file.path("./R/functions.R"))
 
 ```
 
@@ -151,7 +151,7 @@ write_csv(dataone_cit, file.path(output_directory,
                                  paste0("dataone_metrics_cit_", date,".csv")))
 ```
 
-### Query SOLR - all ADC DOIs
+### Query SOLR 
 
 DataOne metrics API can only provide data package DOIs with citations, and can not provide a comprehensive list of all data package DOIs contained within the ADC. To search through all the repository metadata we query the DataONE search index (Apache SOLR search engine). SOLR is the same underlying mechanism that DataONE uses in the online tool and can create complex logical query conditions.
 
@@ -159,7 +159,9 @@ DataOne metrics API can only provide data package DOIs with citations, and can n
 Call `dataone::getQueryEngineDescription(cn, "solr")` to return a complete list of searchable SOLR values
 :::
 
-```{r SOLR_query}
+#### Get all ADC DOIs
+
+```{r SOLR_query_doi}
 #| code-fold: true
 
 # set coordinating node
@@ -182,6 +184,52 @@ solr_adc_result <- dataone::query(mn, solrQuery=queryParamList, as="data.frame",
 write.csv(solr_adc_result, file.path(output_directory, 
                                      paste0("solr_adc_", date, ".csv")))
 ```
+
+#### Get all ADC discipline ontology classifications
+
+```{r SOLR_query_disc}
+#| code-fold: true
+#| 
+# Run second Solr query to pull semantic annotations for 2022_08_10 DOIs
+
+# set up Solr query parameters
+discQueryParamList <- list(q = "id:doi* AND (*:* NOT obsoletedBy:*)",
+                       fl = "id,title,dateUploaded,datasource,sem_annotation",
+                       start ="0",
+                       rows = "100000")
+
+# send query to Solr, return results as dataframe. parse = T returns list column, F returns chr value
+solr_adc_sem <- dataone::query(mn, solrQuery=discQueryParamList, as="data.frame", parse=T)
+
+# POSSIBLE BREAK POINT - read in url
+# read in csv with coded discipline ontology
+adc_ont <- read.csv("https://raw.githubusercontent.com/NCEAS/adc-disciplines/main/adc-disciplines.csv") %>% 
+  # use ontology id to build id url - add required amount of 0s to create 5 digit suffix
+    mutate(an_uri = paste0("https://purl.dataone.org/odo/ADCAD_", 
+                           stringr::str_pad(id, 5, "left", pad = "0")))
+
+solr_adc_sem$category <- purrr::map(solr_adc_sem$sem_annotation, function(x){
+    t <- grep("*ADCAD*", x, value = TRUE)
+    cats <- c()
+    for (i in 1:length(t)){
+        z <- which(adc_ont$an_uri == t[i])
+        cats[i] <- adc_ont$discipline[z]
+        
+    }
+    return(cats)
+})
+
+# extract discipline categories from single column to populate new columns
+disc_adc_wide <- solr_adc_sem %>% 
+  unnest_wider(category, names_sep ="_") %>% 
+  select(-sem_annotation, -datasource, -dateUploaded, -title) %>% 
+  rename("dataset_id" = id)
+
+write.csv(disc_adc_wide,
+          file.path(output_directory, paste0("solr_adc_", date, "_disc.csv")),
+          row.names = FALSE)
+```
+
 
 *SOLR query does not yet include date search term to align with `date` object. Using `date` to save and read in .csv*
 
@@ -608,56 +656,26 @@ Pull dataset discipline semantics from Solr.
 
 ```{r get_solr_discipline}
 #| code-fold: true
-# Run second Solr query to pull semantic annotations for 2022_08_10 DOIs
 
-# set coordinationg node
-cn <- dataone::CNode("PROD")
-
-# point to specific member node
-mn <- dataone::getMNode(cn, "urn:node:ARCTIC")
-
-# set up Solr query parameters
-queryParamList <- list(q = "id:doi* AND (*:* NOT obsoletedBy:*)",
-                       fl = "id,title,dateUploaded,datasource,sem_annotation",
-                       start ="0",
-                       rows = "100000")
-
-# send query to Solr, return results as dataframe. parse = T returns list column, F returns chr value
-solr_adc_sem <- dataone::query(mn, solrQuery=queryParamList, as="data.frame", parse=T)
-
-# POSSIBLE BREAK POINT - read in url
-# read in csv with coded discipline ontology
-disc_adc <- read.csv("https://raw.githubusercontent.com/NCEAS/adc-disciplines/main/adc-disciplines.csv") %>% 
-  # use ontology id to build id url - add required amount of 0s to create 5 digit suffix
-    mutate(an_uri = paste0("https://purl.dataone.org/odo/ADCAD_", 
-                           stringr::str_pad(id, 5, "left", pad = "0")))
-
-solr_adc_sem$category <- purrr::map(solr_adc_sem$sem_annotation, function(x){
-    t <- grep("*ADCAD*", x, value = TRUE)
-    cats <- c()
-    for (i in 1:length(t)){
-        z <- which(disc_adc$an_uri == t[i])
-        cats[i] <- disc_adc$discipline[z]
-        
-    }
-    return(cats)
-})
+disc_adc <- read_csv(file.path(output_directory, 
+                                     paste0("solr_adc_", date, "_disc.csv")))
 
 # read in manual dataset discipline classifications. Remove extra columns
 disc_manual <- read_csv(file.path(data_dir, "adc-discipline-2022-10-27.csv"))[1:6]
 colnames(disc_manual)[1] <- "dataset_id"
-disc_col_names <- colnames(disc_manual)
 
-# extract discipline categories from single column to populate new columns
-disc_adc_wide <- solr_adc_sem %>% 
-  unnest_wider(category, names_sep ="_") %>% 
-  select(-sem_annotation, -datasource, -dateUploaded, -title) 
-colnames(disc_adc_wide) <- disc_col_names
+# merge discipline classifications, prioritize my own manual classifications for 
+# sake of this analysis.
+# There is a better way to do this, I just need to get this done 
+disc_all <- full_join(disc_manual, disc_adc) %>% 
+  mutate(disc_cat_1 = ifelse(is.na(disc_cat_1), category_1, disc_cat_1),
+         disc_cat_2 = ifelse(is.na(disc_cat_2), category_2, disc_cat_2),
+         disc_cat_3 = ifelse(is.na(disc_cat_3), category_3, disc_cat_3),
+         disc_cat_4 = ifelse(is.na(disc_cat_4), category_4, disc_cat_4),
+         disc_cat_5 = ifelse(is.na(disc_cat_5), category_5, disc_cat_5)
+         ) %>% 
+  select(-c(category_1, category_2, category_3, category_4, category_5))
 
-# join disc dataframes
-#disc_all <- rows_update(disc_adc_wide, disc_manual, by = 'id' , unmatched = "ignore")
-
-scythe_cit_disc_adc <- left_join(scythe_cit, disc_adc_wide, by = "dataset_id")
   
 ```
 
