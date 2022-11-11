@@ -576,6 +576,7 @@ We evaluated the redundancy in dataset citations found among sources by matching
 ```{r source_overlap, eval=TRUE}
 #| code-fold: true
 #| fig-cap: "Citation Source Overlap: Number of citations found in multiple sources and number of citations found uniquely in only one source."
+#| label: fig-source-overlap
 
 
 # summarize the sources that each citation is found in for table
@@ -683,10 +684,14 @@ scythe_cit_disc <- left_join(scythe_cit, disc_all)
 
 ```
 
+The ontology discipline analysis is more complex than I originally though (basic categorical data) with subsumptive hierarchy... I could use some direction here. 
+
 ### Citations overtime 
 
 ```{r citations_over_time, eval=T}
 #| code-fold: true
+#| fig-cap: "Number of dataset citations per dataset as related to number of days publically available on the ADC to date of analysis (2022-11-03)"
+#| label: fig-cit_over_time
 
 # analysis date as date object
 date_date <- as.Date(date)
@@ -721,7 +726,7 @@ It looks like there was an event ~700 days. Possibly State of the Arctic report 
 
 ### How many citations found by `scythe` are already known to DataOne Metrics Service?
 
-`do_cit_src_07` came from Rushiraj. `do_cit_src_07` has the record of how citations entered the DataOne Metrics Service: `Crossref`, `Metrics Service Ingest`, and ORCID. `Metrics Service Ingest` is previous `scythe` runs. I cross referenced the `scythe` citation results with both DataOne metrics citation lists and look at the distribution of citation sources.
+`do_cit_src_07` came from Rushiraj in July. `do_cit_src_07` has the record of how citations entered the DataOne Metrics Service: `Crossref`, `Metrics Service Ingest`, and ORCID. `Metrics Service Ingest` is previous `scythe` runs. I cross referenced the `scythe` citation results with both DataOne metrics citation lists and look at the distribution of citation sources.
 
 ```{r new_scythe_citations, eval = T}
 #| code-fold: true
@@ -736,8 +741,10 @@ do_cit_src_07 <- readr::read_csv(file.path(data_dir, "dataone_cits_report_2022_0
 # clean up dataone citation reporter csv. Remove extra ' from character strings
 do_cit_src_07 <- as.data.frame(lapply(do_cit_src_07, gsub, pattern = "*'*", replacement = ""))
 
+# rename dataone metrics citations columns to match scythe results
+# replace unique Orcid # with "ORCiD"
 do_cit_src_07 %<>%
-  rename("article_id" = source_id, # rename dataone metrics citations columns to match scythe results
+  rename("article_id" = source_id, 
          "dataset_id" = target_id) %>% 
   mutate(reporter = sub("^http.*","ORCiD", do_cit_src_07$reporter))
 
