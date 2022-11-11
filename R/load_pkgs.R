@@ -27,7 +27,7 @@ library(miniUI)
 
 
 # install development version of scythe package with added xdd library
-#groundhog.library('github::dataoneorg/scythe@develop' , groundhog.day, tolerate.R.version='4.1.3')
+#groundhog.library('github::dataoneorg/scythe' , groundhog.day, tolerate.R.version='4.1.3') # does not work with git branch
 #devtools::install_github("dataoneorg/scythe@develop")
 devtools::load_all('~/scythe/R')
 
