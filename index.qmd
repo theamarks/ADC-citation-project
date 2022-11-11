@@ -187,6 +187,16 @@ write.csv(solr_adc_result, file.path(output_directory,
 
 #### Get all ADC discipline ontology classifications
 
+The ADC created a research discipline ontology to classify datasets. Here is the [root of ADC discipline semantics annotations](https://bioportal.bioontology.org/ontologies/ADCAD/?p=classes&conceptid=root). Classes/ID is where to look for query specifics. Below is an example SOLR query that looks for two of those disciplines:
+
+```
+https://cn.dataone.org/cn/v2/query/solr/?q=sem_annotation:*ADCAD_00077+OR+sem_annotation:*ADCAD_00005&fl=identifier,formatId,sem_annotation
+```
+
+::: callout-note
+Every single SS ID will need to be listed in the query list. Solr currently not set up to query umbrella SS ID yet. 
+:::
+
 ```{r SOLR_query_disc}
 #| code-fold: true
 #| 
@@ -222,7 +232,7 @@ solr_adc_sem$category <- purrr::map(solr_adc_sem$sem_annotation, function(x){
 # extract discipline categories from single column to populate new columns
 disc_adc_wide <- solr_adc_sem %>% 
   unnest_wider(category, names_sep ="_") %>% 
-  select(-sem_annotation, -datasource, -dateUploaded, -title) %>% 
+  select(-sem_annotation, -datasource, -title) %>% 
   rename("dataset_id" = id)
 
 write.csv(disc_adc_wide,
@@ -373,11 +383,11 @@ job::job({
                                       "source" = paste0("springer ", as.character(err)))
                          }
       )
-      test <- rbind(test, result)
-      write.csv(citations_springer, path_springer, row.names = F)
+      citations_springer <- rbind(citations_springer, result)
+      #write.csv(citations_springer, path_springer, row.names = F)
     }
   }
-}, title = paste0("springer citation search", Sys.time())
+}, title = paste0("springer citation search ", Sys.time())
 )
 ```
 
@@ -642,23 +652,12 @@ Scopus found `r overlap[[which(overlap$source_combination == "scopus"), "n"]]` u
 
 ### Citations by Research Discipline
 
-The ADC created a research discipline ontology to classify datasets. Here is the [root of ADC discipline semantics annotations](https://bioportal.bioontology.org/ontologies/ADCAD/?p=classes&conceptid=root). Classes/ID is where to look for query specifics. Below is an example SOLR query that looks for two of those disciplines:
-
-```
-https://cn.dataone.org/cn/v2/query/solr/?q=sem_annotation:*ADCAD_00077+OR+sem_annotation:*ADCAD_00005&fl=identifier,formatId,sem_annotation
-```
-
-::: callout-note
-Every single SS ID will need to be listed in the query list. Solr currently not set up to query umbrella SS ID yet. 
-:::
-
-Pull dataset discipline semantics from Solr. 
-
-```{r get_solr_discipline}
+```{r discipline_analysis}
 #| code-fold: true
 
 disc_adc <- read_csv(file.path(output_directory, 
-                                     paste0("solr_adc_", date, "_disc.csv")))
+                                     paste0("solr_adc_", date, "_disc.csv"))) %>% 
+  select(1,3:7) # remove data uploaded column
 
 # read in manual dataset discipline classifications. Remove extra columns
 disc_manual <- read_csv(file.path(data_dir, "adc-discipline-2022-10-27.csv"))[1:6]
@@ -674,10 +673,50 @@ disc_all <- full_join(disc_manual, disc_adc) %>%
          disc_cat_4 = ifelse(is.na(disc_cat_4), category_4, disc_cat_4),
          disc_cat_5 = ifelse(is.na(disc_cat_5), category_5, disc_cat_5)
          ) %>% 
-  select(-c(category_1, category_2, category_3, category_4, category_5))
+  select(-c(category_1, category_2, category_3, category_4, category_5)) %>% 
+  mutate(dataset_id = sub(pattern = "^doi:{1}", dataset_id, replacement = "" ))
 
-  
+scythe_cit_disc <- left_join(scythe_cit, disc_all)
+
+# possible constrained hierarchical clustering
+# subsumptive containment hierarchy
+
 ```
+
+### Citations overtime 
+
+```{r citations_over_time, eval=T}
+#| code-fold: true
+
+# analysis date as date object
+date_date <- as.Date(date)
+
+date_uploaded <- read_csv(file.path(output_directory, 
+                                    paste0("solr_adc_", date, "_disc.csv"))) %>% 
+  select(1:2) %>% 
+  mutate(dateUploaded = as.Date(dateUploaded)) %>% 
+  mutate(age = date_date - dateUploaded) %>% 
+  mutate(dataset_id = sub(pattern = "^doi:{1}", dataset_id, replacement = "" ))
+  
+
+scythe_cit_date <- scythe_cit %>% 
+  left_join(date_uploaded) %>% 
+  na.omit(dateUploaded) # remove citations without date uploaded info
+
+scythe_cit_date_sum <- scythe_cit_date %>% 
+  group_by(dataset_id, age) %>% 
+  summarize("num_cit" = length(article_id))
+
+date_graph <- scythe_cit_date_sum %>% 
+  ggplot(aes(x = age, y = num_cit)) +
+  geom_point() + 
+  theme_classic() +
+  labs(x = "# days dataset has been available to analysis date",
+       y = "number of citations found by scythe")
+date_graph
+```
+
+It looks like there was an event ~700 days. Possibly State of the Arctic report metatdata records showing up? almost 2 years ago? Overall does not appear to have an obvious relationship with time. Low number of citations per dataset mostly. 243 datasets had 888 citations found by scythe & had date_uploaded data from Solr. 
 
 
 ### How many citations found by `scythe` are already known to DataOne Metrics Service?
