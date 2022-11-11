@@ -723,10 +723,11 @@ date_graph
 
 It looks like there was an event ~700 days. Possibly State of the Arctic report metatdata records showing up? almost 2 years ago? Overall does not appear to have an obvious relationship with time. Low number of citations per dataset mostly. 243 datasets had 888 citations found by scythe & had date_uploaded data from Solr. 
 
-
 ### How many citations found by `scythe` are already known to DataOne Metrics Service?
 
 `do_cit_src_07` came from Rushiraj in July. `do_cit_src_07` has the record of how citations entered the DataOne Metrics Service: `Crossref`, `Metrics Service Ingest`, and ORCID. `Metrics Service Ingest` is previous `scythe` runs. I cross referenced the `scythe` citation results with both DataOne metrics citation lists and look at the distribution of citation sources.
+
+Is this going to be apart of AGU? Interesting to others?
 
 ```{r new_scythe_citations, eval = T}
 #| code-fold: true
@@ -763,7 +764,7 @@ do_cit_source_fig <- do_cit_source_sum %>%
   geom_text(aes(label = num_cit), hjust = -0.5) +
   labs(x = "",
        y = "Number of Citations",
-       caption = "Total citations count: 2035")
+       caption = "Total citations count July 2022: 2035")
 
 do_cit_source_fig
 
@@ -773,6 +774,9 @@ do_cit_source_fig
 #| code-fold: true
 #| label: tbl-scythe-do-overlap
 #| tbl-cap: "Citations found by scythe that were previously recorded in DataOne Metrics Service"
+
+unique_citations <- scythe_cit %>% 
+  distinct(article_id, dataset_id)
 
 scythe_cit_new <- anti_join(unique_citations, do_cit_src_07, by = c("article_id", "dataset_id")) %>% 
   na.omit()
@@ -791,19 +795,21 @@ knitr::kable(scythe_in_do_sum,
              col.names = c("Source", "Number of Citations"))
 ```
 
-`scythe` found `x` new citations not currently in the DataOne Metrics Service. However, Table x and y indicate that citaitons found by previous scythe runs (`Metrics Service Injest`) are not being found by the current scythe run. Why are they missing? Do results from DataCite query overwrite previous `Metrics Service Ingest` observations? MIs `scythe` the only source for `Metrics Service Injest`?
+
+`scythe` found 1060 qunique new citations not currently in the DataOne Metrics Service in November 2022. Need to functionalize code for analysis between 2 run dates. 
 
 *This could be a figure - proportion columns*
 
 
 *Query CrossRef to see if scythe results were reported*
 
-3)  Does the prevalence of data citations differ among disciplines (enviro vs SS)?
+## Possible Next Steps
 
-    -   Use ADC discipline classifications
-    -   Dataset citations are rare, N of classifications varies widely, need to control for sampling biases <https://zenodo.org/record/4730857#.YoaQ2WDMKrM>
+-   Dataset citations are rare, N of classifications varies widely, need to control for sampling biases <https://zenodo.org/record/4730857#.YoaQ2WDMKrM>
 
-4)  Total number of citations is extremely useful. Ground truth analysis - for a small number of datasets manually search through literature for citations.
+- Total number of citations is extremely useful. Ground truth analysis - for a small number of datasets manually search through literature for citations.
 
-5)  Do usage metrics (downloads and views) correlate well with citation metrics?
+-  Do usage metrics (downloads and views) correlate well with citation metrics?
+    
+- Network analysis 
 
