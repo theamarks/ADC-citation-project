@@ -24,13 +24,29 @@ adcad <- adcad %>%
 
 from_to <- adcad %>% 
   mutate(class_id = substr(x = adcad$class_id, start = 36, stop = 40),
-         parents = ifelse(grepl(".Thing$", adcad$parents), "origin", 
+         parents = ifelse(grepl(".Thing$", adcad$parents), NA, 
                             substr(x = adcad$parents, start = 36, stop = 40)))
 
 disc_id <- from_to %>% 
   select(-parents) %>% 
   rename("parents" = class_id)
 
-from_to_df <- from_to %>% 
+vertices <- disc_id[,"parents"] %>% 
+  mutate(parents = ifelse(parents == "00000", "origin", parents))
+
+from_to_labels <- from_to %>% 
   left_join(disc_id, by = "parents") 
 
+hier <- from_to[,c(1,3)] %>% 
+  rename("from" = "parents",
+         "to" = "class_id") %>% 
+  select(from, to) %>% 
+  na.omit() %>% 
+  arrange(from) %>% 
+  mutate(from = ifelse(from == "00000", "origin", from))
+
+mygraph <- graph_from_data_frame(hier, vertices=vertices)
+
+ggraph(mygraph, layout = 'circlepack') + 
+  geom_node_circle() +
+  theme_void()
