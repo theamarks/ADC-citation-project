@@ -14,26 +14,27 @@ adcad <- adcad %>%
          "parents" = "Parents") %>% 
   select(class_id, label, parents) 
 
-from_to <- adcad %>% 
+# remove mess from IDs
+adcad_num <- adcad %>% 
   mutate(class_id = substr(x = adcad$class_id, start = 36, stop = 40),
          parents = ifelse(grepl(".Thing$", adcad$parents), "origin", 
                             substr(x = adcad$parents, start = 36, stop = 40)))
 
-disc_id <- from_to %>% 
+# Discipline ID dataframe
+disc_id <- adcad_num %>% 
   select(-parents) %>% 
   rename("parents" = class_id)
 
+# create dataframe of node/vertices information
 my_vertices <- disc_id[,"label"]
 names(my_vertices)[1] <- "name"
-#my_vertices[nrow(my_vertices) + 1,] = "origin"
 my_vertices$size <- cit_disc$n_cit[match(my_vertices$name, cit_disc$value)]
 my_vertices %<>%
-  mutate(size = ifelse(is.na(size), 1, size +1))
+  # mutate(size = ifelse(is.na(size), 1, size +1)) # this doesn't make sense, need to back calculate
+  #filter(size > 0)
 
-from_to_labels <- from_to %>% 
-  left_join(disc_id, by = "parents") 
-
-edges_num <- from_to[,c(1,3)] %>% 
+# create dataframe with edge/connector info
+edges_num <- adcad_num[,c(1,3)] %>% 
   rename("from" = "parents",
          "to" = "class_id") %>% 
   select(from, to) %>% 
@@ -41,9 +42,10 @@ edges_num <- from_to[,c(1,3)] %>%
   arrange(from) #%>% 
   #mutate(from = ifelse(from == "00000", "origin", from))
 
+# match disc id numbers with names
 edges_name <- edges_num
 edges_name$to <- disc_id$label[match(edges_name$to, disc_id$parents)]
 edges_name$from <- disc_id$label[match(edges_name$from, disc_id$parents)]
-edges_name <- na.omit(edges_name)
-#edges_name %<>%
-#  mutate(from = ifelse(is.na(from), "origin", from))
+edges_name %<>%
+  na.omit() %>% 
+  mutate(from = ifelse(from == "Academic Discipline", "origin", from)) # %>% 
