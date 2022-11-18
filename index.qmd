@@ -96,7 +96,7 @@ source(file.path("./R/analysis_paths.R"))
 # functions for data colleciton and analysis
 source(file.path("./R/functions.R"))
 
-source(file.path("./R/ontology_hierarchy.R"))
+#source(file.path("./R/ontology_hierarchy.R"))
 
 ```
 
@@ -685,20 +685,26 @@ scythe_cit_disc_l <- scythe_cit_disc %>%
   pivot_longer(cols = 5:9, names_to = NULL) %>% 
   na.omit()
 
-test <- scythe_cit_disc_l %>% 
+cit_disc <- scythe_cit_disc_l %>% 
   group_by(value) %>% 
   summarise(n_cit = length(unique(article_id, dataset_id)))
 
+```
+
+```{r}
 # possible constrained hierarchical clustering
 # subsumptive containment hierarchy
 
 # hier dataframe from `./data/ontology_hierarchy.R`
-mygraph <- graph_from_data_frame(hier, vertices=vertices)
+mygraph <- graph_from_data_frame(edges_name, vertices = my_vertices)
 
-ggraph(mygraph, layout = 'circlepack') + 
-  geom_node_circle() +
+circle_graph<- ggraph(mygraph, layout = 'circlepack', weight = size) + 
+  geom_node_circle(aes(depth)) +
   theme_void() +
+  theme(legend.position="FALSE") +
   scale_fill_viridis()
+circle_graph
+
 ```
 
 The ontology discipline analysis is more complex than I originally though (basic categorical data) with subsumptive hierarchy... I could use some direction here. 
