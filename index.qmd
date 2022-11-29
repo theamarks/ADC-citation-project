@@ -591,15 +591,23 @@ overlap <- scythe_cit %>%
 # Create euler diagram of overlap
 # Color blind friendly color pallet
 #show_col(viridis(30, option = "C"))
-overlap_color <- c("#AB2494FF", "#DE6065FF", "#FCA338FF", "#F0F921FF")
+#overlap_color <- c("#AB2494FF", "#DE6065FF", "#FCA338FF", "#F0F921FF")
+overlap_color <- c("#7AFDB1", "#166760", "#1b897E", "#62EC6D")
 ovrlp_vec <- setNames(overlap$n, as.character(overlap$source_combination))
 fit <- euler(ovrlp_vec)
-plot(fit, 
+euler_fig <- plot(fit, 
      quantities = TRUE,
      fills = list(fill = overlap_color),
      labels = c("PLOS", "Scopus", "Springer", "xDD"))
 
-
+euler_fig
+ggsave(euler_fig, 
+       filename = file.path(output_directory, paste0("scythe_", date, "overlap_fig.png")), 
+       dpi = 600,
+       scale = 1,
+       units = "in",
+       width = 6)
+# 
 ```
 
 
