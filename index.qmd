@@ -687,12 +687,15 @@ disc_all <- full_join(disc_manual, disc_adc) %>%
   select(-c(category_1, category_2, category_3, category_4, category_5)) %>% 
   mutate(dataset_id = sub(pattern = "^doi:{1}", dataset_id, replacement = "" ))
 
+# assign dataset classifications to found scythe citations
 scythe_cit_disc <- left_join(scythe_cit, disc_all)
 
+# transform 5 discipline classification columns into single column - multiple rows per dataset
 scythe_cit_disc_l <- scythe_cit_disc %>% 
   pivot_longer(cols = 5:9, names_to = NULL) %>% 
   na.omit()
 
+# summarize disc classifications - sum number of citations per category
 cit_disc <- scythe_cit_disc_l %>% 
   group_by(value) %>% 
   summarise(n_cit = length(unique(article_id, dataset_id)))
