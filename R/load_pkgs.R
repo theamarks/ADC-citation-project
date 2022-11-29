@@ -24,6 +24,9 @@ library(scales)
 library(viridis)
 library(curl)
 library(miniUI)
+library(ggraph)
+library(igraph)
+library(viridis)
 
 
 # install development version of scythe package with added xdd library

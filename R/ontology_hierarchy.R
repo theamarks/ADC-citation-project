@@ -1,10 +1,5 @@
 ## Build hierarchtical dataframe
 
-# Libraries
-library(ggraph)
-library(igraph)
-library(viridis)
-
 # read in child parent relationship from ontology
 adcad <- read_csv("./data/ADCAD.csv")
 # transform url descriptions to codes
@@ -29,7 +24,7 @@ disc_id <- adcad_num %>%
 my_vertices <- disc_id[,"label"]
 names(my_vertices)[1] <- "name"
 my_vertices$size <- cit_disc$n_cit[match(my_vertices$name, cit_disc$value)]
-my_vertices %<>%
+#my_vertices %<>%
   # mutate(size = ifelse(is.na(size), 1, size +1)) # this doesn't make sense, need to back calculate
   #filter(size > 0)
 
@@ -49,3 +44,4 @@ edges_name$from <- disc_id$label[match(edges_name$from, disc_id$parents)]
 edges_name %<>%
   na.omit() %>% 
   mutate(from = ifelse(from == "Academic Discipline", "origin", from)) # %>% 
+
