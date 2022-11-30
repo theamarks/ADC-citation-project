@@ -1,4 +1,4 @@
-## Build hierarchtical dataframe
+## Build hierarchical dataframe
 
 # read in child parent relationship from ontology
 adcad <- read_csv("./data/ADCAD.csv")
@@ -21,12 +21,18 @@ disc_id <- adcad_num %>%
   rename("parents" = class_id)
 
 # create dataframe of node/vertices information
-my_vertices <- disc_id[,"label"]
+# my_vertices <- disc_id[,"label"]
+# names(my_vertices)[1] <- "name"
+
+my_vertices <- as_tibble(unique(c(edges_name$from, edges_name$to)))
 names(my_vertices)[1] <- "name"
+
 my_vertices$size <- cit_disc$n_cit[match(my_vertices$name, cit_disc$value)]
-#my_vertices %<>%
-  # mutate(size = ifelse(is.na(size), 1, size +1)) # this doesn't make sense, need to back calculate
-  #filter(size > 0)
+my_vertices <- na.omit(my_vertices)
+
+# my_vertices %<>%
+#   mutate(size = ifelse(is.na(size), 0, size)) %>% 
+#   filter(name != "Academic Discipline")
 
 # create dataframe with edge/connector info
 edges_num <- adcad_num[,c(1,3)] %>% 
@@ -45,3 +51,12 @@ edges_name %<>%
   na.omit() %>% 
   mutate(from = ifelse(from == "Academic Discipline", "origin", from)) # %>% 
 
+# edges_1 <- edges_name %>% 
+#   filter(to %in% cit_disc$value)
+# 
+# edges_circle <- edges_name %>% 
+#   filter(to %in% cit_disc$value | to %in% edges_1$from)
+# 
+# my_vertices_circle <- my_vertices %>% 
+#   filter(name %in% edges_circle$to) %>% 
+#   mutate(size = ifelse(is.na(size), 0, size))
