@@ -698,7 +698,10 @@ scythe_cit_disc_l <- scythe_cit_disc %>%
 # summarize disc classifications - sum number of citations per category
 cit_disc <- scythe_cit_disc_l %>% 
   group_by(value) %>% 
-  summarise(n_cit = length(unique(article_id, dataset_id)))
+  summarise(n_cit = length(unique(article_id, dataset_id))) 
+
+knitr::kable(cit_disc, 
+             col.names = c("Dataset Discipline", "Number of Citations"))
 
 ```
 
@@ -707,13 +710,11 @@ cit_disc <- scythe_cit_disc_l %>%
 # subsumptive containment hierarchy
 
 # hier dataframe from `./data/ontology_hierarchy.R`
-mygraph <- graph_from_data_frame(edges_name, vertices = my_vertices)
+mygraph <- igraph::graph_from_data_frame(edges_name, vertices = my_vertices)
 
 circle_graph<- ggraph(mygraph, layout = 'circlepack', weight = size) + 
-  geom_node_circle(aes(depth)) +
-  theme_void() +
-  theme(legend.position="FALSE") +
-  scale_fill_viridis()
+  geom_node_circle() +
+  theme_void()
 circle_graph
 
 ```
