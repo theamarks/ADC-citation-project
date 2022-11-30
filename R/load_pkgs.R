@@ -27,6 +27,7 @@ library(miniUI)
 library(ggraph)
 library(igraph)
 library(viridis)
+library(kableExtra)
 
 
 # install development version of scythe package with added xdd library
