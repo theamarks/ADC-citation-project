@@ -663,7 +663,7 @@ Scopus found `r overlap[[which(overlap$source_combination == "scopus"), "n"]]` u
 
 ### Citations by Research Discipline
 
-```{r discipline_analysis}
+```{r discipline_analysis, eval=TRUE, warning = FALSE, message=FALSE}
 #| code-fold: true
 
 disc_adc <- read_csv(file.path(output_directory, 
@@ -701,20 +701,25 @@ cit_disc <- scythe_cit_disc_l %>%
   summarise(n_cit = length(unique(article_id, dataset_id))) 
 
 knitr::kable(cit_disc, 
-             col.names = c("Dataset Discipline", "Number of Citations"))
+             col.names = c("Dataset Discipline", "Number of Citations")) %>% 
+  kableExtra::scroll_box(width = "500px", height = "200px")
 
 ```
 
-```{r}
+```{r hierarchy_figure}
+#| code-fold: true
 # possible constrained hierarchical clustering
 # subsumptive containment hierarchy
 
 # hier dataframe from `./data/ontology_hierarchy.R`
-mygraph <- igraph::graph_from_data_frame(edges_name, vertices = my_vertices)
+mygraph <- igraph::graph_from_data_frame(edges_hydro, vertices = hydro_vert)
 
-circle_graph<- ggraph(mygraph, layout = 'circlepack', weight = size) + 
-  geom_node_circle() +
-  theme_void()
+circle_graph <- ggraph(mygraph, layout = 'circlepack', weight = size) + 
+  geom_node_circle(aes(fill = depth)) +
+  theme_void() +
+  theme(legend.position="FALSE") +
+  scale_fill_viridis() +
+  geom_node_text( aes(label=name, filter=leaf, fill=depth, size=size))
 circle_graph
 
 ```
