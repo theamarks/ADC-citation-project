@@ -713,9 +713,11 @@ knitr::kable(cit_disc,
 ```
 
 
-```{r treemap_figure, eval=TRUE}
+```{r treemap_figure, eval=F}
 #| code-fold: true
-#| 
+
+# These are not great at displaying more than 2 groupings. The ontology data has at most 5
+
 # data prep for treemaps & sunburst figures
 source(file.path("./R/treemap.R"))
 
@@ -753,6 +755,7 @@ treemap_3 <- treemap(tree_3,
 
 ```{r sunburst_figure, eval = TRUE}
 #| code-fold: true
+source(file.path("./R/sunburst_discipline.R"))
 
 # all levels - hydrology broken into indvidual leaves
 sun_all <- sunburst(sun_levels_all, legend=FALSE)
