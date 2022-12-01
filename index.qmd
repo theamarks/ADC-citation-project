@@ -706,7 +706,7 @@ knitr::kable(cit_disc,
 
 ```
 
-```{r hierarchy_figure}
+```{r circle_packing_figure}
 #| code-fold: true
 # possible constrained hierarchical clustering
 # subsumptive containment hierarchy
@@ -719,7 +719,8 @@ circle_graph <- ggraph(mygraph, layout = 'circlepack', weight = size) +
   theme_void() +
   theme(legend.position="FALSE") +
   scale_fill_viridis() +
-  geom_node_text( aes(label=name, filter=leaf, fill=depth, size=size))
+ # scale_fill_manual(values = c("1" = "blue", "2" = "green")) +
+  geom_node_text(aes(label=name, filter=leaf, fill=depth, size=size))
 circle_graph
 
 ```
