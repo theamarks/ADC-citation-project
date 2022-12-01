@@ -573,7 +573,7 @@ knitr::kable(scythe_sum,
 
 We evaluated the redundancy in dataset citations found among sources by matching citations between source search results. **A citation is defined by the unique combination of `article_id` and `dataset_id`**. Percent overlap is the total number of citations found in a source also found in a second source, divided by the total number of citation found within the source.
 
-```{r source_overlap, eval=TRUE}
+```{r source_overlap_figure, eval=TRUE}
 #| code-fold: true
 #| fig-cap: "Citation Source Overlap: Number of citations found in multiple sources and number of citations found uniquely in only one source."
 #| label: fig-source-overlap
@@ -589,8 +589,11 @@ overlap <- scythe_cit %>%
 # Create euler diagram of overlap
 # Color blind friendly color pallet
 #show_col(viridis(30, option = "C"))
+# viridis color palette
 #overlap_color <- c("#AB2494FF", "#DE6065FF", "#FCA338FF", "#F0F921FF")
-overlap_color <- c("#7AFDB1", "#166760", "#1b897E", "#62EC6D")
+# ADC color palette
+#overlap_color <- c("#7AFDB1", "#166760", "#1b897E", "#62EC6D")
+overlap_color <- c("#B5E1E7", "#19B36A", "#1B897E", "#7AFDB1")
 ovrlp_vec <- setNames(overlap$n, as.character(overlap$source_combination))
 fit <- euler(ovrlp_vec)
 euler_fig <- plot(fit, 
