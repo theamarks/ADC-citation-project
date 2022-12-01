@@ -712,7 +712,7 @@ knitr::kable(cit_disc,
 # subsumptive containment hierarchy
 
 # hier dataframe from `./data/ontology_hierarchy.R`
-mygraph <- igraph::graph_from_data_frame(edges_hydro, vertices = hydro_vert)
+mygraph <- igraph::graph_from_data_frame(edges_hydro_leaves, vertices = vert_hydro_leaves)
 
 circle_graph <- ggraph(mygraph, layout = 'circlepack', weight = size) + 
   geom_node_circle(aes(fill = depth)) +
