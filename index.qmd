@@ -96,8 +96,6 @@ source(file.path("./R/analysis_paths.R"))
 # functions for data colleciton and analysis
 source(file.path("./R/functions.R"))
 
-#source(file.path("./R/ontology_hierarchy.R"))
-
 ```
 
 ## Search For Citations
@@ -666,8 +664,9 @@ Scopus found `r overlap[[which(overlap$source_combination == "scopus"), "n"]]` u
 ```{r discipline_analysis, eval=TRUE, warning = FALSE, message=FALSE}
 #| code-fold: true
 
+# Meld manual dataset discipline categorization with Solr categories
 disc_adc <- read_csv(file.path(output_directory, 
-                                     paste0("solr_adc_", date, "_disc.csv"))) %>% 
+                               paste0("solr_adc_", date, "_disc.csv"))) %>% 
   select(1,3:7) # remove data uploaded column
 
 # read in manual dataset discipline classifications. Remove extra columns
@@ -683,7 +682,7 @@ disc_all <- full_join(disc_manual, disc_adc) %>%
          disc_cat_3 = ifelse(is.na(disc_cat_3), category_3, disc_cat_3),
          disc_cat_4 = ifelse(is.na(disc_cat_4), category_4, disc_cat_4),
          disc_cat_5 = ifelse(is.na(disc_cat_5), category_5, disc_cat_5)
-         ) %>% 
+  ) %>% 
   select(-c(category_1, category_2, category_3, category_4, category_5)) %>% 
   mutate(dataset_id = sub(pattern = "^doi:{1}", dataset_id, replacement = "" ))
 
@@ -698,7 +697,11 @@ scythe_cit_disc_l <- scythe_cit_disc %>%
 # summarize disc classifications - sum number of citations per category
 cit_disc <- scythe_cit_disc_l %>% 
   group_by(value) %>% 
-  summarise(n_cit = length(unique(article_id, dataset_id))) 
+  summarise(n_cit = length(unique(article_id, dataset_id)))
+
+# academic discipline ontology fit to ADC datasets and scythe citaitons
+source(file.path("./R/ontology_hierarchy.R"))
+
 
 knitr::kable(cit_disc, 
              col.names = c("Dataset Discipline", "Number of Citations")) %>% 
@@ -706,41 +709,24 @@ knitr::kable(cit_disc,
 
 ```
 
-```{r circle_packing_figure}
+
+```{r treemap_figure, eval=TRUE}
 #| code-fold: true
-# possible constrained hierarchical clustering
-# subsumptive containment hierarchy
+#| 
+# data prep for treemaps & sunburst figures
+source(file.path("./R/treemap.R"))
 
-# hier dataframe from `./data/ontology_hierarchy.R`
-mygraph <- igraph::graph_from_data_frame(edges_hydro_leaves, vertices = vert_hydro_leaves)
-
-circle_graph <- ggraph(mygraph, layout = 'circlepack', weight = size) + 
-  geom_node_circle(aes(fill = depth)) +
-  theme_void() +
-  theme(legend.position="FALSE") +
-  scale_fill_viridis() +
- # scale_fill_manual(values = c("1" = "blue", "2" = "green")) +
-  geom_node_text(aes(label=name, filter=leaf, fill=depth, size=size))
-circle_graph
-
-```
-
-The ontology discipline analysis is more complex than I originally though (basic categorical data) with subsumptive hierarchy... I could use some direction here. 
-
-
-```{r treemap_figure}
-
-tree_1 <- levels %>% 
+tree_1 <- tree_levels %>% 
   select(branch_2, branch_3, size) %>% 
   group_by(branch_2, branch_3) %>% 
   summarize("Proportion of Citations by Academic Discipline" = sum(size))
 
-tree_2 <- levels %>% 
+tree_2 <- tree_levels %>% 
   select(branch_3, branch_4, size) %>% 
   group_by(branch_3, branch_4) %>% 
   summarize("Proportion of Citations by Academic Discipline" = sum(size))
 
-tree_3 <- levels %>% 
+tree_3 <- tree_levels %>% 
   select(branch_4, branch_5, size) %>% 
   group_by(branch_4, branch_5) %>% 
   summarize("Proportion of Citations by Academic Discipline" = sum(size))
@@ -762,17 +748,15 @@ treemap_3 <- treemap(tree_3,
 
 ```
 
-```{r sunburst_figure}
+```{r sunburst_figure, eval = TRUE}
 #| code-fold: true
-library(sunburstR)
 
-
-
-p <- sunburst(sun_levels, legend=FALSE)
-p
-
+# all levels - hydrology broken into indvidual leaves
 sun_all <- sunburst(sun_levels_all, legend=FALSE)
 sun_all
+
+# next - put hydrology back into original heirarchtical structure
+
 ```
 
 
