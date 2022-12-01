@@ -27,7 +27,8 @@ library(miniUI)
 library(ggraph)
 library(igraph)
 library(viridis)
-library(kableExtra)
+library(kableExtra) # scroll bar features
+library(sunburstR) # sunburst figure
 
 
 # install development version of scythe package with added xdd library
