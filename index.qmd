@@ -712,47 +712,6 @@ knitr::kable(cit_disc,
 
 ```
 
-
-```{r treemap_figure, eval=F}
-#| code-fold: true
-
-# These are not great at displaying more than 2 groupings. The ontology data has at most 5
-
-# data prep for treemaps & sunburst figures
-source(file.path("./R/treemap.R"))
-
-tree_1 <- tree_levels %>% 
-  select(branch_2, branch_3, size) %>% 
-  group_by(branch_2, branch_3) %>% 
-  summarize("Proportion of Citations by Academic Discipline" = sum(size))
-
-tree_2 <- tree_levels %>% 
-  select(branch_3, branch_4, size) %>% 
-  group_by(branch_3, branch_4) %>% 
-  summarize("Proportion of Citations by Academic Discipline" = sum(size))
-
-tree_3 <- tree_levels %>% 
-  select(branch_4, branch_5, size) %>% 
-  group_by(branch_4, branch_5) %>% 
-  summarize("Proportion of Citations by Academic Discipline" = sum(size))
-
-treemap_1 <- treemap(tree_1,
-                     index=c("branch_2","branch_3"),
-                     vSize="Proportion of Citations by Academic Discipline",
-                     type="index") 
-
-treemap_2 <- treemap(tree_2,
-                     index=c("branch_3","branch_4"),
-                     vSize="Proportion of Citations by Academic Discipline",
-                     type="index") 
-
-treemap_3 <- treemap(tree_3,
-                     index=c("branch_4","branch_5"),
-                     vSize="Proportion of Citations by Academic Discipline",
-                     type="index") 
-
-```
-
 ```{r sunburst_figure, eval = TRUE}
 #| code-fold: true
 source(file.path("./R/sunburst_discipline.R"))
