@@ -58,9 +58,9 @@ edges_name %<>%
 # add new leaves for hydrology - remove old structure
 new_leaves <- data.frame("from" = "Geoscience","to" = c("Cryology", "Glaciology"))
 dead_leaves <- edges_name[-which(edges_name$to == c("Cryology", "Glaciology")),]
-edges_hydro_leaves <- rbind(dead_leaves, new_leaves)
+hydro_leaves <- rbind(dead_leaves, new_leaves)
 
-edges_hydro_leaves %<>%
+edges_hydro_leaves <- hydro_leaves %>% 
   filter(to %in% c(vert_hydro_leaves$name))
 
 add_mid_nodes <- data.frame(name = unique(edges_hydro_leaves$from), size = 0)
