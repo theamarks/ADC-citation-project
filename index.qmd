@@ -728,10 +728,51 @@ circle_graph
 The ontology discipline analysis is more complex than I originally though (basic categorical data) with subsumptive hierarchy... I could use some direction here. 
 
 
-```{r discipline_figure}
+```{r treemap_figure}
+
+tree_1 <- levels %>% 
+  select(branch_2, branch_3, size) %>% 
+  group_by(branch_2, branch_3) %>% 
+  summarize("Proportion of Citations by Academic Discipline" = sum(size))
+
+tree_2 <- levels %>% 
+  select(branch_3, branch_4, size) %>% 
+  group_by(branch_3, branch_4) %>% 
+  summarize("Proportion of Citations by Academic Discipline" = sum(size))
+
+tree_3 <- levels %>% 
+  select(branch_4, branch_5, size) %>% 
+  group_by(branch_4, branch_5) %>% 
+  summarize("Proportion of Citations by Academic Discipline" = sum(size))
+
+treemap_1 <- treemap(tree_1,
+                     index=c("branch_2","branch_3"),
+                     vSize="Proportion of Citations by Academic Discipline",
+                     type="index") 
+
+treemap_2 <- treemap(tree_2,
+                     index=c("branch_3","branch_4"),
+                     vSize="Proportion of Citations by Academic Discipline",
+                     type="index") 
+
+treemap_3 <- treemap(tree_3,
+                     index=c("branch_4","branch_5"),
+                     vSize="Proportion of Citations by Academic Discipline",
+                     type="index") 
+
+```
+
+```{r sunburst_figure}
+#| code-fold: true
+library(sunburstR)
 
 
 
+p <- sunburst(sun_levels, legend=FALSE)
+p
+
+sun_all <- sunburst(sun_levels_all, legend=FALSE)
+sun_all
 ```
 
 
