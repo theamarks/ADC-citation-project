@@ -1,7 +1,6 @@
 # Academic Discipline Dataset Classification Analysis
 
 
-
 ## Organize discipline in heirarchtical structure (network)
 
 # read in child parent relationship from ontology
