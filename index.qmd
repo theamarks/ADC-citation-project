@@ -691,7 +691,7 @@ disc_all <- full_join(disc_manual, disc_adc) %>%
 
 # assign dataset classifications to found scythe citations
 scythe_cit_disc <- left_join(scythe_cit, disc_all) %>% 
-  distinct(article_id, dataset_id) 
+  distinct(article_id, dataset_id, .keep_all = TRUE) 
 
 # transform 5 discipline classification columns into single column - multiple rows per dataset
 scythe_cit_disc_l <- scythe_cit_disc %>% 
