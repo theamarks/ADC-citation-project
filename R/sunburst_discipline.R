@@ -44,15 +44,13 @@ circ_levels %<>%
          branch_4 = ifelse(branch_3 == branch_4, NA, branch_4),
          branch_5 = ifelse(branch_4 == branch_5, NA, branch_5),
          branch_6 = ifelse(branch_5 == branch_6, NA, branch_6)) %>% 
-  select(branch_1, branch_2, branch_3, branch_4, branch_5, branch_6, size) %>% 
-  filter(!is.na(branch_3))
+  select(branch_1, branch_2, branch_3, branch_4, branch_5, branch_6, size)
+  
 
 ### Sun burst
 sun_levels_all <- circ_levels %>% 
-  mutate(branch_4 = ifelse(is.na(branch_4), "", branch_4),
-         branch_5 = ifelse(is.na(branch_5), "", branch_5),
-         branch_6 = ifelse(is.na(branch_6), "", branch_6)) %>% 
-  mutate(path = paste(branch_2, branch_3, branch_4, branch_5, branch_6, sep = "-")) %>% 
+  replace_na(list(branch_2 = "", branch_3 = "", branch_4 = "", branch_5 = "", branch_6 = "")) %>% 
+  mutate(path = paste(branch_1, branch_2, branch_3, branch_4, branch_5, branch_6, sep = "-")) %>% 
   select(path, size) %>% 
   mutate(path = gsub(pattern = "[-]+$", "", path)) # remove extra dashes indicating levels
 
