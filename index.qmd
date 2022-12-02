@@ -151,7 +151,7 @@ write_csv(dataone_cit, file.path(output_directory,
                                  paste0("dataone_metrics_cit_", date,".csv")))
 ```
 
-### Query SOLR 
+### Query SOLR
 
 DataOne metrics API can only provide data package DOIs with citations, and can not provide a comprehensive list of all data package DOIs contained within the ADC. To search through all the repository metadata we query the DataONE search index (Apache SOLR search engine). SOLR is the same underlying mechanism that DataONE uses in the online tool and can create complex logical query conditions.
 
@@ -189,12 +189,10 @@ write.csv(solr_adc_result, file.path(output_directory,
 
 The ADC created a research discipline ontology to classify datasets. Here is the [root of ADC discipline semantics annotations](https://bioportal.bioontology.org/ontologies/ADCAD/?p=classes&conceptid=root). Classes/ID is where to look for query specifics. Below is an example SOLR query that looks for two of those disciplines:
 
-```
-https://cn.dataone.org/cn/v2/query/solr/?q=sem_annotation:*ADCAD_00077+OR+sem_annotation:*ADCAD_00005&fl=identifier,formatId,sem_annotation
-```
+    https://cn.dataone.org/cn/v2/query/solr/?q=sem_annotation:*ADCAD_00077+OR+sem_annotation:*ADCAD_00005&fl=identifier,formatId,sem_annotation
 
 ::: callout-note
-Every single SS ID will need to be listed in the query list. Solr currently not set up to query umbrella SS ID yet. 
+Every single SS ID will need to be listed in the query list. Solr currently not set up to query umbrella SS ID yet.
 :::
 
 ```{r SOLR_query_disc}
@@ -239,7 +237,6 @@ write.csv(disc_adc_wide,
           file.path(output_directory, paste0("solr_adc_", date, "_disc.csv")),
           row.names = FALSE)
 ```
-
 
 *SOLR query does not yet include date search term to align with `date` object. Using `date` to save and read in .csv*
 
@@ -545,7 +542,6 @@ if(file.exists(path_all)) {
 
 ```
 
-
 ```{r raw_scythe_results, eval=T}
 #| code-fold: true
 #| label: tbl-raw
@@ -611,7 +607,6 @@ ggsave(euler_fig,
 # 
 ```
 
-
 ```{r prct_overlap_table, eval=TRUE, echo=FALSE}
 #| label: tbl-overlap
 #| tbl-cap: "Percent overlap between Scythe sources"
@@ -661,8 +656,13 @@ knitr::kable(overlap_table,
 
 Scopus found `r overlap[[which(overlap$source_combination == "scopus"), "n"]]` unique citations not found in any other digital libraries. Springer found `r overlap[[which(overlap$source_combination == "springer"), "n"]]`, PLOS `r overlap[[which(overlap$source_combination == "plos"), "n"]]`, and xDD `r overlap[[which(overlap$source_combination == "xdd"), "n"]]` unique citations respectfully. The total number of unique citations returned by `scythe` is `r sum(overlap$n)`.
 
+### Do Dataset Citations Differ Among Research Disciplines?
 
-### Citations by Research Discipline
+The Arctic Data Center uses a semantic ontology to classify academic disciplines of datasets. Datasets can be labeled with up to 5 disciplines. This enables datasets to be more easily found with search terms. The ADC's ontology can be found here: [https://bioportal.bioontology.org/ontologies/ADCAD/?p=classes&conceptid=root]().
+
+::: callout-note
+DOI (Digital Object Identifier) is one system of unique persistent identification (PID). Different PIDs may be used in different academic disciplines. For example, genetics/bioinformatic studies often use accession numbers from the GenBank repository to uniquely label DNA and protein sequences. This analysis is limited to citations specifically using DOIs; citations using dataset titles or other PIDs are not included.
+:::
 
 ```{r discipline_analysis, eval=TRUE, warning = FALSE, message=FALSE}
 #| code-fold: true
@@ -690,7 +690,8 @@ disc_all <- full_join(disc_manual, disc_adc) %>%
   mutate(dataset_id = sub(pattern = "^doi:{1}", dataset_id, replacement = "" ))
 
 # assign dataset classifications to found scythe citations
-scythe_cit_disc <- left_join(scythe_cit, disc_all)
+scythe_cit_disc <- left_join(scythe_cit, disc_all) %>% 
+  distinct(article_id, dataset_id) 
 
 # transform 5 discipline classification columns into single column - multiple rows per dataset
 scythe_cit_disc_l <- scythe_cit_disc %>% 
@@ -711,21 +712,22 @@ knitr::kable(cit_disc,
 
 ```{r sunburst_figure, eval = TRUE}
 #| code-fold: true
+#| fig-cap: "scythe dataset citations grouped by academic discipline."
+#| label: fig-discipline-sunburst
 
-# academic discipline ontology fit to ADC datasets and scythe citaitons
+# academic discipline ontology fit to ADC datasets and scythe citations
 source(file.path("./R/ontology_hierarchy.R"))
 source(file.path("./R/sunburst_discipline.R"))
 
-# all levels - hydrology broken into indvidual leaves
+# all levels - hydrology broken into individual leaves
 sun_all <- sunburst(sun_levels_all, legend=FALSE)
 sun_all
 
-# next - put hydrology back into original heirarchtical structure
+# next - put hydrology back into original hierarchical structure
 
 ```
 
-
-### Citations overtime 
+### Citations overtime
 
 ```{r citations_over_time, eval=T}
 #| code-fold: true
@@ -760,7 +762,7 @@ date_graph <- scythe_cit_date_sum %>%
 date_graph
 ```
 
-It looks like there was an event ~700 days. Possibly State of the Arctic report metatdata records showing up? almost 2 years ago? Overall does not appear to have an obvious relationship with time. Low number of citations per dataset mostly. 243 datasets had 888 citations found by scythe & had date_uploaded data from Solr. 
+It looks like there was an event \~700 days. Possibly State of the Arctic report metatdata records showing up? almost 2 years ago? Overall does not appear to have an obvious relationship with time. Low number of citations per dataset mostly. 243 datasets had 888 citations found by scythe & had date_uploaded data from Solr.
 
 ### How many citations found by `scythe` are already known to DataOne Metrics Service?
 
@@ -834,11 +836,9 @@ knitr::kable(scythe_in_do_sum,
              col.names = c("Source", "Number of Citations"))
 ```
 
-
-`scythe` found 1060 qunique new citations not currently in the DataOne Metrics Service in November 2022. Need to functionalize code for analysis between 2 run dates. 
+`scythe` found 1060 qunique new citations not currently in the DataOne Metrics Service in November 2022. Need to functionalize code for analysis between 2 run dates.
 
 *This could be a figure - proportion columns*
-
 
 *Query CrossRef to see if scythe results were reported*
 
@@ -846,9 +846,8 @@ knitr::kable(scythe_in_do_sum,
 
 -   Dataset citations are rare, N of classifications varies widely, need to control for sampling biases <https://zenodo.org/record/4730857#.YoaQ2WDMKrM>
 
-- Total number of citations is extremely useful. Ground truth analysis - for a small number of datasets manually search through literature for citations.
+-   Total number of citations is extremely useful. Ground truth analysis - for a small number of datasets manually search through literature for citations.
 
--  Do usage metrics (downloads and views) correlate well with citation metrics?
-    
-- Network analysis 
+-   Do usage metrics (downloads and views) correlate well with citation metrics?
 
+-   Network analysis
