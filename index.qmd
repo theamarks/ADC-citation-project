@@ -87,6 +87,9 @@ date <- "2022-11-03"
 # vector of APIs used in analysis
 source_list <- c("scopus", "springer", "plos", "xdd")
 
+# ADC color palette
+adc_color <- c("#19B36A", "#B5E1E7", "#1B897E", "#7AFDB1", "#1b897E", "#1D254E")
+
 # load libraries
 source(file.path("./R/load_pkgs.R"))
 
@@ -587,9 +590,7 @@ overlap <- scythe_cit %>%
 #show_col(viridis(30, option = "C"))
 # viridis color palette
 #overlap_color <- c("#AB2494FF", "#DE6065FF", "#FCA338FF", "#F0F921FF")
-# ADC color palette
-#overlap_color <- c("#7AFDB1", "#166760", "#1b897E", "#62EC6D")
-overlap_color <- c("#B5E1E7", "#19B36A", "#1B897E", "#7AFDB1")
+overlap_color <- c("#19B36A", "#B5E1E7", "#1B897E", "#7AFDB1")
 ovrlp_vec <- setNames(overlap$n, as.character(overlap$source_combination))
 fit <- euler(ovrlp_vec)
 euler_fig <- plot(fit, 
@@ -722,7 +723,9 @@ source(file.path("./R/ontology_hierarchy.R"))
 source(file.path("./R/sunburst_discipline.R"))
 
 # all levels - hydrology broken into individual leaves
-sun_all <- sunburst(sun_levels_all, legend=FALSE)
+sun_all <- sunburstR::sunburst(sun_levels_all, 
+                               legend=FALSE,
+                               color = adc_color)
 sun_all
 
 ```
