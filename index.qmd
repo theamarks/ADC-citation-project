@@ -93,7 +93,7 @@ source(file.path("./R/load_pkgs.R"))
 # create directories and file paths 
 source(file.path("./R/analysis_paths.R"))
 
-# functions for data colleciton and analysis
+# functions for data collection and analysis
 source(file.path("./R/functions.R"))
 
 ```
@@ -702,9 +702,6 @@ cit_disc <- scythe_cit_disc_l %>%
   group_by(value) %>% 
   summarise(n_cit = length(unique(article_id, dataset_id)))
 
-# academic discipline ontology fit to ADC datasets and scythe citaitons
-source(file.path("./R/ontology_hierarchy.R"))
-
 
 knitr::kable(cit_disc, 
              col.names = c("Dataset Discipline", "Number of Citations")) %>% 
@@ -714,6 +711,9 @@ knitr::kable(cit_disc,
 
 ```{r sunburst_figure, eval = TRUE}
 #| code-fold: true
+
+# academic discipline ontology fit to ADC datasets and scythe citaitons
+source(file.path("./R/ontology_hierarchy.R"))
 source(file.path("./R/sunburst_discipline.R"))
 
 # all levels - hydrology broken into indvidual leaves
