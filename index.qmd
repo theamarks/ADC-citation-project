@@ -666,6 +666,8 @@ DOI (Digital Object Identifier) is one system of unique persistent identificatio
 
 ```{r discipline_analysis, eval=TRUE, warning = FALSE, message=FALSE}
 #| code-fold: true
+#| label: tbl-disc
+#| tbl-cap: "Number of citations found by discipline"
 
 # Meld manual dataset discipline categorization with Solr categories
 disc_adc <- read_csv(file.path(output_directory, 
@@ -705,15 +707,15 @@ cit_disc <- scythe_cit_disc_l %>%
 
 
 knitr::kable(cit_disc, 
-             col.names = c("Dataset Discipline", "Number of Citations")) %>% 
-  kableExtra::scroll_box(width = "500px", height = "200px")
+             col.names = c("Dataset Discipline", "Number of Citations")) #%>% 
+  #kableExtra::scroll_box(width = "500px", height = "200px")
 
 ```
 
 ```{r sunburst_figure, eval = TRUE}
 #| code-fold: true
 #| fig-cap: "scythe dataset citations grouped by academic discipline."
-#| label: fig-discipline-sunburst
+#| label: fig-disc-sunburst
 
 # academic discipline ontology fit to ADC datasets and scythe citations
 source(file.path("./R/ontology_hierarchy.R"))
@@ -723,9 +725,10 @@ source(file.path("./R/sunburst_discipline.R"))
 sun_all <- sunburst(sun_levels_all, legend=FALSE)
 sun_all
 
-# next - put hydrology back into original hierarchical structure
-
 ```
+
+Of the `r nrow(scythe_cit_disc)` unique dataset citations found by `scythe`, datasets classified as `r cit_disc[[which(cit_disc$n_cit == max(cit_disc$n_cit)),"value"]]`, and `r cit_disc[[which(cit_disc$n_cit == max(cit_disc$n_cit[cit_disc$n_cit != max(cit_disc$n_cit)])),"value"]]` constituted the vast majority of citations. `r max(cit_disc$n_cit)`, and `r max(cit_disc$n_cit[cit_disc$n_cit != max(cit_disc$n_cit)])` citations respectively (@tbl-disc and @fig-disc-sunburst). 
+
 
 ### Citations overtime
 
