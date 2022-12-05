@@ -725,6 +725,8 @@ source(file.path("./R/sunburst_discipline.R"))
 # all levels - hydrology broken into individual leaves
 sun_all <- sunburstR::sunburst(sun_levels_all, 
                                legend=FALSE,
+                               #percent=TRUE,
+                               count=TRUE,
                                color = adc_color)
 sun_all
 
